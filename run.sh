@@ -1,0 +1,1 @@
+python3 /home/sealy/sealventure/manage.py runserver 142.132.227.206:8000

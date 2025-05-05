@@ -15,6 +15,29 @@ export class Game {
 
     static ActiveOverlay;
 
+    static Controls = {
+        MOVE_UP: ["i"],
+        MOVE_DOWN: ["k"],
+        MOVE_LEFT: ["j"],
+        MOVE_RIGHT: ["l"],
+
+        CYCLE_SELECTION: ["n"],
+        
+        ATTACK: ["."],
+        SELECT: ["Enter"],
+        
+        OPEN_INVENTORY: ["m"],
+        CLOSE_ALL: ["Escape", ","],
+    }
+
+    static GetKeybind(Key) {
+        for (const [Keybind, Value] of Object.entries(this.Controls)) {
+            if (Value.indexOf(Key) > -1) return Keybind;
+        }
+
+        return undefined;
+    }
+
     static MovePlayer(X, Y) {
         const NewX = this.Player.PositionX + X;
         const NewY = this.Player.PositionY + Y;
@@ -61,31 +84,32 @@ export class Game {
 
     static async HandleInput(Event) {
         const Key = Event.key;
+        const Control = this.GetKeybind(Key);
 
-        switch (Key) {
-            case "i":
+        switch (Control) {
+            case "MOVE_UP":
                 this.MovePlayer(0, -1);
                 break;
-            case "k":
+            case "MOVE_DOWN":
                 this.MovePlayer(0, 1);
                 break;
-            case "j":
+            case "MOVE_LEFT":
                 this.MovePlayer(-1, 0);
                 break;
-            case "l":
+            case "MOVE_RIGHT":
                 this.MovePlayer(1, 0);
                 break;
-            case "n":
+            case "CYCLE_SELECTION":
                 if (this.ActiveOverlay) {
                     this.CycleOverlaySelection();
                 } else {
                     this.CycleMapSelection();
                 }
                 break;
-            case ",":
+            case "OPEN_INVENTORY":
                 this.Player.InventoryOverlay();
                 break;
-            case "Enter":
+            case "SELECT":
                 if (this.ActiveOverlay && this.ActiveOverlay.SelectFunction && this.ActiveOverlay.SelectCount > 0) {
                     this.ActiveOverlay.SelectFunction();
                 } else {
@@ -94,8 +118,7 @@ export class Game {
                 }
 
                 break;
-            case "u":
-            case "Escape":
+            case "CLOSE_ALL":
                 this.ActiveOverlay = undefined;
                 break;
         }

@@ -33,7 +33,7 @@ export function GenerateSampleMap(R, C) {
         true,
         "gold",
         "Chest",
-        [ new Item("Item", "I"), new Item("Item", "I"), new Item("Item", "I"), new Item("Item", "I") ]
+        [ new Item("Sword", "S", 20), new Item("Axe", "A", 10), new Item("Torch", "T", 2) ]
     )
 
     return new Map(Content);

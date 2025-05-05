@@ -27,16 +27,18 @@ export class Player {
                 ContainerOverlay.Content = JSON.parse(JSON.stringify(Origin));
                 const Selection = window.Game.Player.OverlaySelection;
 
-                for (const [Index, Itm] of this.Inventory.entries()) {
-                    const Selected = (Index == Selection);
+                let Offset = Selection > 1 ? Selection-2 : 0;
+
+                for (const [Index, Itm] of this.Inventory.slice(0+Offset,4+Offset).entries()) {
+                    const Selected = (this.Inventory.indexOf(Itm) == Selection);
                     const Prefix = Selected ? '*' : '';
-                    const Color = (this.EquippedItem == Itm) ? "cyan" : (Selected ? "coral" : "");
+                    const Color = (this.EquippedItem == Itm) ? "aquamarine" : (Selected ? "coral" : "");
 
                     OverlayHelper.WriteToOverlay(ContainerOverlay, `${Prefix}${Itm.Name}`, 2, Index+1, Color);
                 }
 
                 if (this.Inventory.length == 0) {
-                    OverlayHelper.WriteToOverlay(ContainerOverlay, "Inventory Empty", 2, 1);
+                    OverlayHelper.WriteToOverlay(ContainerOverlay, "Inventory Empty", 2, 1, "goldenrod");
                 }
             }.bind(this),
 

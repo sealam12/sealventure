@@ -2,9 +2,10 @@ import { OverlayHelper } from "/static/js/OverlayHelper.js";
 import { Overlay } from "/static/js/Display.js";
 
 export class Item {
-    constructor(Name, Char) {
+    constructor(Name, Char, Damage) {
         this.Name = Name;
         this.Char = Char;
+        this.Damage = Damage;
     }
 }
 
@@ -50,8 +51,10 @@ export class Container extends MapObject {
                 ContainerOverlay.Content = JSON.parse(JSON.stringify(Origin));
                 const Selection = window.Game.Player.OverlaySelection;
 
-                for (const [Index, Itm] of this.Items.entries()) {
-                    const Selected = (Index == Selection);
+                let Offset = Selection > 1 ? Selection-2 : 0;
+
+                for (const [Index, Itm] of this.Items.slice(0+Offset,4+Offset).entries()) {
+                    const Selected = (this.Items.indexOf(Itm) == Selection);
                     const Prefix = Selected ? '*' : '';
                     const Color = Selected ? "coral" : "";
 
@@ -59,7 +62,7 @@ export class Container extends MapObject {
                 }
 
                 if (this.Items.length == 0) {
-                    OverlayHelper.WriteToOverlay(ContainerOverlay, "Container Empty", 2, 1);
+                    OverlayHelper.WriteToOverlay(ContainerOverlay, "Container Empty", 2, 1, "goldenrod");
                 }
             }.bind(this),
 
@@ -75,5 +78,21 @@ export class Container extends MapObject {
         );
 
         window.Game.ActiveOverlay = ContainerOverlay;
+    }
+}
+
+export class Entity extends MapObject {
+    constructor(Char, Collision, Color, Name, Health, Inventory) {
+        super(Char, Collision, Color, Name);
+        this.Health = Health;
+        this.Inventory = Inventory || [];
+    }
+
+    Interact() {
+
+    }
+
+    Attack(Item) {
+        this.Health -= Item.Damage;
     }
 }

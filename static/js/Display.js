@@ -37,6 +37,11 @@ export class DisplayManager {
         return Objs;
     }
 
+    ResetScreen() {
+        this.OverlayObjects = this.Blank();
+        this.MapObjects = [];
+    }
+
     DisplayMap(Map) {
         const Objects = Map.Objects;
         let NewObjects = [];
@@ -52,11 +57,11 @@ export class DisplayManager {
     }
 
     DisplayOverlay(Overlay) {
-        let NewObjects = this.Blank();
+        let NewObjects = this.OverlayObjects;
 
         for (const [Y, Row] of Overlay.Content.entries()) {
             for (const [X, OverlayObject] of Row.entries()) {
-                NewObjects[Y+Overlay.StartY][X+Overlay.StartX] = new DisplayObject(OverlayObject.Char, OverlayObject.Color);
+                NewObjects[Y+Overlay.StartY][X+Overlay.StartX] = OverlayObject;
             }
         }
 

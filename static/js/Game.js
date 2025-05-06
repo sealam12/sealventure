@@ -14,6 +14,7 @@ export class Game {
     static SelectedMapObjectXY = {X:0, Y:0};
 
     static ActiveOverlay;
+    static StandbyOverlay;
 
     static Controls = {
         MOVE_UP: ["i"],
@@ -118,9 +119,32 @@ export class Game {
                 }
 
                 break;
+            case "ATTACK":
+                break;
             case "CLOSE_ALL":
                 this.ActiveOverlay = undefined;
                 break;
+        }
+    }
+
+    static UpdateStandbyOverlay() {
+        let SelStr = this.SelectedMapObject ? this.SelectedMapObject.Name : "NONE";
+
+        if (this.SelectedMapObject && this.SelectedMapObject.Health) {
+            SelStr += ` - ${this.SelectedMapObject.Health}HP`;
+        }
+
+        this.StandbyOverlay = new Overlay(0, 19, OverlayHelper.GenerateBlank(1, 50));
+        OverlayHelper.WriteToOverlay(this.StandbyOverlay, `[${SelStr}]`, 0, 0);
+    }
+
+    static UpdateMap() {
+        let Map = structuredClone(this.Map);
+
+        for (const [Y, Row] of Map.entries()) {
+            for (const [X, Obj] of Row.entries()) {
+                if (Obj.ReplaceWith) { this.Map[Y][X] = Obj.ReplaceWith; }
+            }
         }
     }
 
@@ -129,16 +153,20 @@ export class Game {
         this.MovePlayer(0, 0);
 
         while (true) {
+            this.Display.ResetScreen();
             this.Display.DisplayMap(this.Map);
 
+            
             if (this.ActiveOverlay) {
-                if (this.ActiveOverlay.TickFunction) this.ActiveOverlay.TickFunction();
                 this.UpdateOverlaySelection();
-
+                if (this.ActiveOverlay.TickFunction) this.ActiveOverlay.TickFunction();
                 this.Display.DisplayOverlay(this.ActiveOverlay);
             } else {
                 this.Display.DisplayOverlay(new Overlay(0, 0, []));   
             }
+
+            this.UpdateStandbyOverlay();
+            this.Display.DisplayOverlay(this.StandbyOverlay);
 
             this.UpdateMapSelection();
 

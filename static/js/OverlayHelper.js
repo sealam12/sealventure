@@ -1,6 +1,22 @@
 import { DisplayObject } from "/static/js/Object.js";
 
 export class OverlayHelper {
+    static GenerateBlank(Rows, Columns) {
+        const R=Rows;
+        const C=Columns;
+
+        let Content = [];
+        for (let r=0; r<R; r++) {
+            Content.push([]);
+            for (let c=0; c<C; c++) {
+                let NewObj = new DisplayObject(" ", "default");
+                NewObj.Blank = true;
+                Content[r].push(NewObj);
+            }
+        } 
+
+        return Content;
+    }
     static GenerateBox(Rows, Columns, TitleText, SubText, OutlineChar) {
         const R=Rows;
         const C=Columns;
@@ -45,6 +61,7 @@ export class OverlayHelper {
     static WriteToOverlay(Overlay, Text, X, Y, Color) {
         for (const [Index, Char] of Text.split("").entries()) {
             Overlay.Content[Y][Index+X].Char = Char;
+            Overlay.Content[Y][Index+X].Blank = false;
 
             if (Color) Overlay.Content[Y][Index+X].Color = Color;
         }

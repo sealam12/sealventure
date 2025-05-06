@@ -14,7 +14,7 @@ export class MapObject {
         this.Char = Char;
         this.Collision = Collision;
         this.Color = Color || "white";
-        this.Name = Name || "MapObject";
+        this.Name = Name || "";
     }
 
     Interact() {}
@@ -39,16 +39,15 @@ export class Container extends MapObject {
     }
     
     Interact() {
-        let Origin = OverlayHelper.GenerateBox(6, 44, this.Name, "[SELECT] To Take");
         let ContainerOverlay = new Overlay(
             3, 
             12,
-            JSON.parse(JSON.stringify(Origin)),
+            OverlayHelper.GenerateBox(6, 44, this.Name, "[SELECT] To Take"),
             this.Items.length, 
 
             function() {
                 if (!this.Items) return;
-                ContainerOverlay.Content = JSON.parse(JSON.stringify(Origin));
+                ContainerOverlay.Content = OverlayHelper.GenerateBox(6, 44, this.Name, "[SELECT] To Take");
                 const Selection = window.Game.Player.OverlaySelection;
 
                 let Offset = Selection > 1 ? Selection-2 : 0;
@@ -88,11 +87,17 @@ export class Entity extends MapObject {
         this.Inventory = Inventory || [];
     }
 
-    Interact() {
+    Interact() {}
 
+    Die() {
+        this.ReplaceWith = new Container(this.Char, this.Collision, this.Color, this.Name, this.Inventory);
     }
 
     Attack(Item) {
         this.Health -= Item.Damage;
+
+        if (this.Health <= 0) {
+            this.Die();
+        }
     }
 }

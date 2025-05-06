@@ -19,12 +19,12 @@ export class Player {
         let ContainerOverlay = new Overlay(
             3, 
             12,
-            JSON.parse(JSON.stringify(Origin)),
+            OverlayHelper.GenerateBox(6, 44, "Inventory", "[SELECT] To Equip"),
             this.Inventory.length, 
 
             function() {
                 if (!this.Inventory) return;
-                ContainerOverlay.Content = JSON.parse(JSON.stringify(Origin));
+                ContainerOverlay.Content = OverlayHelper.GenerateBox(6, 44, "Inventory", "[SELECT] To Equip");
                 const Selection = window.Game.Player.OverlaySelection;
 
                 let Offset = Selection > 1 ? Selection-2 : 0;

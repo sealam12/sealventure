@@ -90,7 +90,7 @@ export class Entity extends MapObject {
     Interact() {}
 
     Die() {
-        this.ReplaceWith = new Container(this.Char, this.Collision, this.Color, this.Name, this.Inventory);
+        this.ReplaceWith = new Container(this.Char, this.Collision, "gold", this.Name + " - Dead", this.Inventory);
     }
 
     Attack(Item) {

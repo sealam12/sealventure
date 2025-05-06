@@ -115,11 +115,20 @@ export class Game {
                     this.ActiveOverlay.SelectFunction();
                 } else {
                     const Sel = this.SelectedMapObject;
+                    if (!Sel) { break; }
                     Sel.Interact();
                 }
 
                 break;
             case "ATTACK":
+                const Sel = this.SelectedMapObject;
+                
+                if (!Sel) break;
+                if (!Sel.Attack) break;
+                if (!this.Player.EquippedItem) break;
+
+                Sel.Attack(this.Player.EquippedItem);
+
                 break;
             case "CLOSE_ALL":
                 this.ActiveOverlay = undefined;
@@ -128,35 +137,35 @@ export class Game {
     }
 
     static UpdateStandbyOverlay() {
-        let SelStr = this.SelectedMapObject ? this.SelectedMapObject.Name : "NONE";
+        let EquippedStr = this.Player.EquippedItem ? `[E: ${this.Player.EquippedItem.Name}] ` : "[E: NONE] ";
+        let SelStr = this.SelectedMapObject ? `[${this.SelectedMapObject.Name}` : "[NONE";
 
         if (this.SelectedMapObject && this.SelectedMapObject.Health) {
-            SelStr += ` - ${this.SelectedMapObject.Health}HP`;
+            SelStr += ` (${this.SelectedMapObject.Health}HP)`;
         }
 
+        SelStr += "]";
+
         this.StandbyOverlay = new Overlay(0, 19, OverlayHelper.GenerateBlank(1, 50));
-        OverlayHelper.WriteToOverlay(this.StandbyOverlay, `[${SelStr}]`, 0, 0);
+        OverlayHelper.WriteToOverlay(this.StandbyOverlay, `${EquippedStr}${SelStr}`, 0, 0);
     }
 
     static UpdateMap() {
-        let Map = structuredClone(this.Map);
-
-        for (const [Y, Row] of Map.entries()) {
+        for (const [Y, Row] of this.Map.Objects.entries()) {
             for (const [X, Obj] of Row.entries()) {
-                if (Obj.ReplaceWith) { this.Map[Y][X] = Obj.ReplaceWith; }
+                if (Obj.ReplaceWith) { this.Map.Objects[Y][X] = Obj.ReplaceWith; }
             }
         }
     }
-
+    
     static async Setup() {
         $(document).keydown(this.HandleInput.bind(this));
         this.MovePlayer(0, 0);
-
+        
         while (true) {
             this.Display.ResetScreen();
             this.Display.DisplayMap(this.Map);
 
-            
             if (this.ActiveOverlay) {
                 this.UpdateOverlaySelection();
                 if (this.ActiveOverlay.TickFunction) this.ActiveOverlay.TickFunction();
@@ -165,9 +174,11 @@ export class Game {
                 this.Display.DisplayOverlay(new Overlay(0, 0, []));   
             }
 
-            this.UpdateStandbyOverlay();
-            this.Display.DisplayOverlay(this.StandbyOverlay);
+            this.UpdateMap();
 
+            this.UpdateStandbyOverlay();
+
+            this.Display.DisplayOverlay(this.StandbyOverlay);
             this.UpdateMapSelection();
 
             const Sel = this.SelectedMapObjectXY;

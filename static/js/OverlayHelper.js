@@ -59,7 +59,10 @@ export class OverlayHelper {
     }
 
     static WriteToOverlay(Overlay, Text, X, Y, Color) {
+        if (!Overlay.Content[Y]) { return; }
         for (const [Index, Char] of Text.split("").entries()) {
+            if (!Overlay.Content[Y][Index+X]) { return; }
+
             Overlay.Content[Y][Index+X].Char = Char;
             Overlay.Content[Y][Index+X].Blank = false;
 

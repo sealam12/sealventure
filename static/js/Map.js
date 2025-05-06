@@ -1,4 +1,4 @@
-import { MapObject, Item, Entity } from "/static/js/Object.js";
+import { MapObject, Item, Container, Entity } from "/static/js/Object.js";
 
 export class Map {
     constructor(Objects) {
@@ -28,11 +28,20 @@ export function GenerateSampleMap(R, C) {
         }
     }
 
-    Content[1][2] = new Entity(
+    Content[1][2] = new Container(
         "C",
         true,
         "gold",
         "Chest",
+        [ new Item("Sword", "S", 20), new Item("Axe", "A", 10), new Item("Torch", "T", 2) ]
+    )
+
+    Content[1][5] = new Entity(
+        "E",
+        true,
+        "red",
+        "Enemy",
+        100,
         [ new Item("Sword", "S", 20), new Item("Axe", "A", 10), new Item("Torch", "T", 2) ]
     )
 

@@ -89,6 +89,19 @@ export class DisplayManager {
         this.Screen.html(ScreenText);
     }
 
+    DisplayRaw(Objects) {
+        let ScreenText = "";
+        for (const Row of Objects) {
+            for (const DispObj of Row) {
+                ScreenText += DispObj.GetCharText();
+            }
+
+            ScreenText += "<br>"
+        }
+
+        this.Screen.html(ScreenText);
+    }
+
     HighlightMap(X, Y, Color) {
         this.MapObjects[Y][X].Color = Color;
 
@@ -101,3 +114,5 @@ export class DisplayManager {
         this.DisplayContent();
     }
 }
+
+// WRITTEN BY MATTHEW CARMICHAEL, 2025

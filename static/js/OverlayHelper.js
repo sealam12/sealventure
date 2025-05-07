@@ -70,3 +70,5 @@ export class OverlayHelper {
         }
     }
 }
+
+// WRITTEN BY MATTHEW CARMICHAEL, 2025

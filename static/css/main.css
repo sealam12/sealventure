@@ -3,6 +3,7 @@
 * {
     font-family: "Fira Code", monospace;
     transition: all ease 0.2s;
+    white-space: pre;
 }
 
 body {

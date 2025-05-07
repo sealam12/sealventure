@@ -101,3 +101,5 @@ export class Entity extends MapObject {
         }
     }
 }
+
+// WRITTEN BY MATTHEW CARMICHAEL, 2025

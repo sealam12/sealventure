@@ -49,3 +49,5 @@ export function GenerateSampleMap(R, C) {
 
     return new Map(Content);
 }
+
+// WRITTEN BY MATTHEW CARMICHAEL, 2025

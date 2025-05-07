@@ -68,3 +68,5 @@ export class Player {
         return { X: CurrentXY[0] + this.PositionX, Y: CurrentXY[1] + this.PositionY };
     }
 }
+
+// WRITTEN BY MATTHEW CARMICHAEL, 2025

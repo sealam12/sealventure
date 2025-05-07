@@ -171,7 +171,7 @@ export class MapGenerator {
             this.Rooms.push(NewRoom);
         }
         
-        //document.body.innerHTML = `<div style="height: 500px; background-color: red; overflow: scroll;">${JSON.stringify(this.Rooms, null, 2)}</div>`;
+        return this.Rooms;
     }
 
     static DisplayRooms() {
@@ -180,14 +180,12 @@ export class MapGenerator {
     }
 
     static async Main() {
-        while (true) {
-            this.GenerateRooms( Math.floor(Math.random() * (15 - 8 + 1)) + 8 );
-            try { this.DisplayRooms(); }
-            catch { continue; }
+        let s = false;
 
-            await sleep(500);
+        while (!s) {
+            this.GenerateRooms(15);
+            this.DisplayRooms();
+            s = true;
         }
     }
 }
-
-// WRITTEN BY MATTHEW CARMICHAEL, 2025

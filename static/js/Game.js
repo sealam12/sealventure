@@ -1,20 +1,28 @@
 import { DisplayManager, Overlay } from "/static/js/Display.js";
 import { OverlayHelper } from "/static/js/OverlayHelper.js";
 import { MapObject, DisplayObject } from "/static/js/Object.js";
-import { GenerateSampleMap } from "/static/js/Map.js";
+import { MapGenerator, RoomGenerator } from "/static/js/MapGenerator.js";
 import { Player } from "/static/js/Player.js";
-import { sleep } from "/static/js/Utils.js";
+import { sleep, RoomVisualizer } from "/static/js/Utils.js";
 
 export class Game {
     static Display = new DisplayManager(20, 50);
     static Player = new Player(1, 1);
-    static Map = GenerateSampleMap(20, 50);
+    static Rooms = MapGenerator.GenerateRooms(23);
+    static GeneratedRooms;
+    static CurrentRoom;
+    static Map;
+
+    static AttackCooldown = 400;
+    static LastAttack = 0;
 
     static SelectedMapObject;
     static SelectedMapObjectXY = {X:0, Y:0};
 
     static ActiveOverlay;
     static StandbyOverlay;
+
+    static DungeonMapDisplay;
 
     static Controls = {
         MOVE_UP: ["i"],
@@ -29,6 +37,8 @@ export class Game {
         
         OPEN_INVENTORY: ["m"],
         CLOSE_ALL: ["Escape", ","],
+
+        SHOW_MAP: ["p"]
     }
 
     static GetKeybind(Key) {
@@ -50,6 +60,16 @@ export class Game {
         this.Player.PositionX = NewX;
         this.Player.PositionY = NewY;
         this.Map.SetObj(NewX, NewY, new MapObject("@", true, "palegreen"));
+    }
+
+    static SetPlayerPosition(X, Y) {
+        const ObjectAt = this.Map.GetObj(X, Y);
+        if (ObjectAt.Collision) return;
+
+        this.Map.SetObj(this.Player.PositionX, this.Player.PositionY, new MapObject(" ", false));
+        this.Player.PositionX = X;
+        this.Player.PositionY = Y;
+        this.Map.SetObj(X, Y, new MapObject("@", true, "palegreen"));
     }
 
     static UpdateMapSelection() {
@@ -84,6 +104,7 @@ export class Game {
     }
 
     static async HandleInput(Event) {
+        try {
         const Key = Event.key;
         const Control = this.GetKeybind(Key);
 
@@ -115,8 +136,8 @@ export class Game {
                     this.ActiveOverlay.SelectFunction();
                 } else {
                     const Sel = this.SelectedMapObject;
-                    if (!Sel) { break; }
-                    Sel.Interact();
+                    if (!Sel) break;
+                    Sel.Interact(this.Player.EquippedItem);
                 }
 
                 break;
@@ -127,12 +148,23 @@ export class Game {
                 if (!Sel.Attack) break;
                 if (!this.Player.EquippedItem) break;
 
+                if ( (Date.now() - this.LastAttack) < this.AttackCooldown) break;
+
                 Sel.Attack(this.Player.EquippedItem);
+                this.LastAttack = Date.now();
 
                 break;
+            case "SHOW_MAP":
+                this.DungeonMapDisplay = true;
+                break;
             case "CLOSE_ALL":
+                this.DungeonMapDisplay = false;
                 this.ActiveOverlay = undefined;
                 break;
+        }
+
+        } catch (e) {
+            document.body.innerHTML = e.stack.toString();
         }
     }
 
@@ -144,6 +176,10 @@ export class Game {
             SelStr += ` (${this.SelectedMapObject.Health}HP)`;
         }
 
+        if (this.SelectedMapObject && this.SelectedMapObject.Subtext) {
+            SelStr += ` - ${this.SelectedMapObject.Subtext}`;
+        }
+
         SelStr += "]";
 
         this.StandbyOverlay = new Overlay(0, 19, OverlayHelper.GenerateBlank(1, 50));
@@ -151,15 +187,39 @@ export class Game {
     }
 
     static UpdateMap() {
-        for (const [Y, Row] of this.Map.Objects.entries()) {
+        for (const [Y, Row] of this.Map.GetObjects().entries()) {
             for (const [X, Obj] of Row.entries()) {
-                if (Obj.ReplaceWith) { this.Map.Objects[Y][X] = Obj.ReplaceWith; }
+                if (Obj.ReplaceWith) this.Map.GetObjects()[Y][X] = Obj.ReplaceWith;
+                if (Obj.Tick) Obj.Tick();
             }
         }
+    }
+
+    static SwitchRooms(NewRoomID) {
+        const NewMap = this.GeneratedRooms[NewRoomID];
+        if (!NewMap) { return; }
+
+        this.SetPlayerPosition(1, 9);
+        this.Map = NewMap;
+        this.MovePlayer(0,0);
+
+        this.CurrentRoom = NewRoomID;
+    }
+
+    static GenerateRooms() {
+        let GeneratedRooms = [];
+        for (const Rm of this.Rooms) {
+            GeneratedRooms.push(RoomGenerator.GenerateRoom(Rm, this.Rooms));
+        }
+
+        this.GeneratedRooms = GeneratedRooms;
+        this.Map = this.GeneratedRooms[0];
+        this.CurrentRoom = 0;
     }
     
     static async Setup() {
         $(document).keydown(this.HandleInput.bind(this));
+        this.GenerateRooms();
         this.MovePlayer(0, 0);
         
         while (true) {
@@ -184,7 +244,11 @@ export class Game {
             const Sel = this.SelectedMapObjectXY;
             this.Display.HighlightMap(Sel.X, Sel.Y, "mediumturquoise");
 
-            this.Display.DisplayAll();
+            if (this.DungeonMapDisplay) {
+                this.Display.DisplayRaw(RoomVisualizer.Visualize(this.Rooms));
+            } else {
+                this.Display.DisplayAll();
+            }
             await sleep(1);
         }
     }

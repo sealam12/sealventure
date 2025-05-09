@@ -1,5 +1,15 @@
+import { DisplayObject } from "/static/js/Object.js";
+
 export async function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+export function distance(x1,y1,x2,y2) {
+    let a = x2-x1;
+    let b = y2-y1;
+    let c2 = (a**2) + (b**2)
+    let c = Math.sqrt(c2);
+    return Math.floor(c);
 }
 
 export class RoomVisualizer {
@@ -8,12 +18,18 @@ export class RoomVisualizer {
     }
 
     static DrawRoom(Grid, X, Y, RoomId) {
-        let Color = "aqua";
-        if (this.Rooms[RoomId].Keys.length == 0) Color = "blue";
-        if (RoomId == 0) Color = "palegreen";
-        if (RoomId == 22) Color = "purple";
+        const TypeCode = this.Rooms[RoomId].Type[0].toUpperCase();
+        const Color = {
+            "F": "firebrick",
+            "L": "gold",
+            "R": "lightgreen",
+        }[TypeCode];
 
-        Grid[Y][X] = new DisplayObject('#', Color);
+        let Char = this.Rooms[RoomId].Unlocked ? "*" : "#";
+
+        if (window.Game.CurrentRoom == RoomId) Char = "@";
+
+        Grid[Y][X] = new DisplayObject(Char, Color);
     }
 
     static DrawConnection(Grid, X1, Y1, X2, Y2) {
@@ -85,8 +101,8 @@ export class RoomVisualizer {
 
     static Visualize(Graph) {
         this.Rooms = Graph;
-        const Rows = 20;
-        const Cols = 50;
+        const Rows = 30;
+        const Cols = 75;
         const Grid = this.CreateEmptyGrid(Rows, Cols);
         
         // Calculate positions for all rooms

@@ -43,7 +43,7 @@ export class DisplayManager {
     }
 
     DisplayMap(Map) {
-        const Objects = Map.Objects;
+        const Objects = Map.GetObjects();
         let NewObjects = [];
 
         for (const [Index1, Row] of Objects.entries()) {

@@ -1,25 +1,6 @@
 import { OverlayHelper } from "/static/js/OverlayHelper.js";
 import { Overlay } from "/static/js/Display.js";
 
-export class Item {
-    constructor(Name, Char, Damage) {
-        this.Name = Name;
-        this.Char = Char;
-        this.Damage = Damage;
-    }
-}
-
-export class MapObject {
-    constructor(Char, Collision, Color, Name) {
-        this.Char = Char;
-        this.Collision = Collision;
-        this.Color = Color || "white";
-        this.Name = Name || "";
-    }
-
-    Interact() {}
-}
-
 export class DisplayObject {
     constructor(Char, Color) {
         this.Char = Char;
@@ -32,13 +13,41 @@ export class DisplayObject {
     }
 }
 
+export class Item {
+    constructor(Name, Char, Damage, Metadata) {
+        this.Name = Name;
+        this.Char = Char;
+        this.Damage = Damage;
+        this.Metadata = Metadata || {};
+    }
+
+    GetDamage() {
+        return this.Damage;
+    }
+}
+
+export class MapObject {
+    constructor(Char, Collision, Color, Name) {
+        this.Char = Char;
+        this.Collision = Collision;
+        this.Color = Color || "white";
+        this.Name = Name || "";
+    }
+
+    Interact(Item) {}
+    Tick() {}
+}
+
+
 export class Container extends MapObject {
     constructor(Char, Collision, Color, Name, Items) {
         super(Char, Collision, Color, Name);
         this.Items = Items;
     }
+
+    Tick() {}
     
-    Interact() {
+    Interact(Item) {
         let ContainerOverlay = new Overlay(
             3, 
             12,
@@ -87,14 +96,15 @@ export class Entity extends MapObject {
         this.Inventory = Inventory || [];
     }
 
-    Interact() {}
+    Interact(Item) {}
+    Tick() {}
 
     Die() {
-        this.ReplaceWith = new Container(this.Char, this.Collision, "gold", this.Name + " - Dead", this.Inventory);
+        this.ReplaceWith = new Container(this.Char.toLowerCase(), this.Collision, "gold", this.Name + " - Dead", this.Inventory);
     }
 
     Attack(Item) {
-        this.Health -= Item.Damage;
+        this.Health -= Item.GetDamage();
 
         if (this.Health <= 0) {
             this.Die();

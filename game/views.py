@@ -1,11 +1,11 @@
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 def index(request):
     return render(request, 'main.html', {})
 
 def dungeon(request):
-    return render(request, 'dungeon.html', {})
+    return redirect("/")
 
 def gameplay(request):
-    return render(request, 'gameplay.html', {})
+    return redirect("/")

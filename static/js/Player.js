@@ -9,6 +9,8 @@ export class Player {
         this.Selection = 0;
         this.OverlaySelection = 0;
 
+        this.Health = 100;
+
         this.Inventory = [];
         this.EquippedItem = undefined;
     }
@@ -30,7 +32,7 @@ export class Player {
                 let Offset = Selection > 1 ? Selection-2 : 0;
 
                 for (const [Index, Itm] of this.Inventory.slice(0+Offset,4+Offset).entries()) {
-                    const Selected = (this.Inventory.indexOf(Itm) == Selection);
+                    const Selected = (Index+Offset == Selection);
                     const Prefix = Selected ? '*' : '';
                     const Color = (this.EquippedItem == Itm) ? "aquamarine" : (Selected ? "coral" : "");
 

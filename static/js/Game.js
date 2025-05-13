@@ -34,6 +34,8 @@ export class Game {
         
         ATTACK: ["."],
         SELECT: ["Enter"],
+        USE: [";"],
+        AUX: ["'"],
         
         OPEN_INVENTORY: ["m"],
         CLOSE_ALL: ["Escape", ","],
@@ -141,6 +143,9 @@ export class Game {
                 }
 
                 break;
+            case "USE":
+                if (this.ActiveOverlay && this.ActiveOverlay.UseFunction && this.ActiveOverlay.SelectCount > 0) this.ActiveOverlay.UseFunction();
+                break;
             case "ATTACK":
                 const Sel = this.SelectedMapObject;
                 
@@ -182,8 +187,10 @@ export class Game {
 
         SelStr += "]";
 
+        const HealthStr = `[${this.Player.Health}HP]`
+
         this.StandbyOverlay = new Overlay(0, 19, OverlayHelper.GenerateBlank(1, 50));
-        OverlayHelper.WriteToOverlay(this.StandbyOverlay, `${EquippedStr}${SelStr}`, 0, 0);
+        OverlayHelper.WriteToOverlay(this.StandbyOverlay, `${HealthStr}${EquippedStr}${SelStr}`, 0, 0);
     }
 
     static UpdateMap() {

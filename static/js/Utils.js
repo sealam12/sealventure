@@ -20,14 +20,15 @@ export class RoomVisualizer {
     static DrawRoom(Grid, X, Y, RoomId) {
         const TypeCode = this.Rooms[RoomId].Type[0].toUpperCase();
         const Color = {
-            "F": "firebrick",
+            "F": "red",
             "L": "gold",
             "R": "lightgreen",
+            "B": "darkred"
         }[TypeCode];
 
         // Always use two characters for display
-        let Char = window.Game.CurrentRoom == RoomId ? "@ " : 
-                   this.Rooms[RoomId].Unlocked ? "* " :
+        let Char = window.Game.CurrentRoom == RoomId ? " @" : 
+                   this.Rooms[RoomId].Unlocked ? " *" :
                    RoomId < 10 ? ` ${RoomId}` : RoomId.toString();
 
         // Draw both characters of the room display

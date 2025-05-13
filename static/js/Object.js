@@ -13,12 +13,16 @@ export class DisplayObject {
     }
 }
 
+window.ITEM_ID = 0;
 export class Item {
     constructor(Name, Char, Damage, Metadata) {
         this.Name = Name;
         this.Char = Char;
         this.Damage = Damage;
         this.Metadata = Metadata || {};
+
+        this.ItemID = window.ITEM_ID;
+        window.ITEM_ID++;
     }
 
     GetDamage() {

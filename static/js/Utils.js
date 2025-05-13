@@ -25,37 +25,43 @@ export class RoomVisualizer {
             "R": "lightgreen",
         }[TypeCode];
 
-        let Char = this.Rooms[RoomId].Unlocked ? "*" : "#";
+        // Always use two characters for display
+        let Char = window.Game.CurrentRoom == RoomId ? "@ " : 
+                   this.Rooms[RoomId].Unlocked ? "* " :
+                   RoomId < 10 ? ` ${RoomId}` : RoomId.toString();
 
-        if (window.Game.CurrentRoom == RoomId) Char = "@";
-
-        Grid[Y][X] = new DisplayObject(Char, Color);
+        // Draw both characters of the room display
+        Grid[Y][X] = new DisplayObject(Char[0], Color);
+        Grid[Y][X + 1] = new DisplayObject(Char[1], Color);
     }
 
     static DrawConnection(Grid, X1, Y1, X2, Y2) {
         const DX = X2 - X1;
         const DY = Y2 - Y1;
         
+        // Adjust X1 to start from the right edge of the room number (2 chars)
+        const StartX = X1 + 2;
+        
         if (DY === 0) { // horizontal connection
             const Step = DX > 0 ? 1 : -1;
-            for (let X = X1 + Step; X !== X2; X += Step) {
+            for (let X = StartX; X !== X2; X += Step) {
                 Grid[Y1][X] = new DisplayObject('─', 'gold');
             }
         } else { // vertical connection
             const Step = DY > 0 ? 1 : -1;
             // Draw the first corner
-            Grid[Y1 + Step][X1] = new DisplayObject('│', 'gold');
+            Grid[Y1 + Step][StartX - 1] = new DisplayObject('│', 'gold');
             
             // Draw the middle section
             for (let Y = Y1 + Step * 2; Y !== Y2; Y += Step) {
-                Grid[Y][X1] = new DisplayObject('│', 'gold');
+                Grid[Y][StartX - 1] = new DisplayObject('│', 'gold');
             }
             
             // If there's a horizontal offset, draw the corner and horizontal line
             if (DX !== 0) {
-                Grid[Y2][X1] = new DisplayObject('┴', 'gold');
+                Grid[Y2][StartX - 1] = new DisplayObject('┴', 'gold');
                 const HStep = DX > 0 ? 1 : -1;
-                for (let X = X1 + HStep; X !== X2; X += HStep) {
+                for (let X = StartX; X !== X2; X += HStep) {
                     Grid[Y2][X] = new DisplayObject('─', 'gold');
                 }
             }

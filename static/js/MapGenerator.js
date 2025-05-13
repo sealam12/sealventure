@@ -43,8 +43,14 @@ export class RoomGenerator {
         return Content;
     }
 
-    static GenerateRoomContent(Content, Room) {
+    static GenerateRoomContent(Content, Room, Zones) {
+        const Type = Room.Type;
 
+        if (Type == "attack") {
+            
+        }
+
+        return Content;
     }
 
     static GenerateRoom(Room, Rooms) {
@@ -126,6 +132,8 @@ export class RoomGenerator {
             Content[9][0] = ExitObject;
             Content[10][0] = ExitObject;
         }
+
+        Content = this.GenerateRoomContent(Content, Room);
 
         return new Map(Content);
     }

@@ -32,7 +32,7 @@ export const Tiers = {
 
     "2": [
         Items.FlamingBow,  
-        Items.IronDagger,  
+        Items.IronDagger,
         Items.ChainmailArmor,  
         Items.StuddedLeatherArmor,  
     ],

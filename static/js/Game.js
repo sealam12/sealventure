@@ -3,17 +3,16 @@ import { OverlayHelper } from "/static/js/OverlayHelper.js";
 import { MapObject, DisplayObject } from "/static/js/Object.js";
 import { MapGenerator, RoomGenerator } from "/static/js/MapGenerator.js";
 import { Player } from "/static/js/Player.js";
-import { sleep, RoomVisualizer } from "/static/js/Utils.js";
+import { sleep, RoomVisualizer, WaitForKey } from "/static/js/Utils.js";
 
 export class Game {
     static Display = new DisplayManager(20, 50);
     static Player = new Player(1, 1);
-    static Rooms = MapGenerator.GenerateRooms(23);
+    static Rooms = MapGenerator.GenerateRooms(50);
     static GeneratedRooms;
     static CurrentRoom;
     static Map;
 
-    static AttackCooldown = 400;
     static LastAttack = 0;
 
     static SelectedMapObject;
@@ -23,6 +22,9 @@ export class Game {
     static StandbyOverlay;
 
     static DungeonMapDisplay;
+
+    static Ticks = 0;
+    static TickRate = 25;
 
     static Controls = {
         MOVE_UP: ["i"],
@@ -153,9 +155,9 @@ export class Game {
                 if (!Sel.Attack) break;
                 if (!this.Player.EquippedItem) break;
 
-                if ( (Date.now() - this.LastAttack) < this.AttackCooldown) break;
+                if ( (Date.now() - this.LastAttack) < this.Player.GetCooldown()) break;
 
-                Sel.Attack(this.Player.EquippedItem);
+                Sel.Attack(this.Player.GetDamage());
                 this.LastAttack = Date.now();
 
                 break;
@@ -197,7 +199,16 @@ export class Game {
         for (const [Y, Row] of this.Map.GetObjects().entries()) {
             for (const [X, Obj] of Row.entries()) {
                 if (Obj.ReplaceWith) this.Map.GetObjects()[Y][X] = Obj.ReplaceWith;
-                if (Obj.Tick) Obj.Tick();
+                if (Obj.MoveTo) {
+                    let NewX = Obj.MoveTo[0];
+                    let NewY = Obj.MoveTo[1];
+
+                    if (this.Map.GetObj(NewX, NewY).Collision == false) {
+                        this.Map.SetObj(X, Y, new MapObject(" ", false));
+                        this.Map.SetObj(NewX, NewY, Obj);
+                    };
+                };
+                if (Obj.Tick && (this.Ticks % this.TickRate) == 0) Obj.Tick(X, Y);
             }
         }
     }
@@ -230,6 +241,8 @@ export class Game {
         this.MovePlayer(0, 0);
         
         while (true) {
+            this.Ticks++;
+
             this.Display.ResetScreen();
             this.Display.DisplayMap(this.Map);
 
@@ -262,6 +275,9 @@ export class Game {
 
     static async Main() {
         try {
+            this.Display.DisplayRaw([[new DisplayObject("REMEMBER: THE GAME IS IN BETA AND BUGS MAY OCCUR.")], [new DisplayObject("SOME FEATURES ARE NOT FULLY IMPLEMENTED AND UNEXPECTED BEHAVIORS MAY OCCUR.")], [new DisplayObject("PLEASE CONTACT THE DEVELOPER (MATTHEW CARMICHAEL) VIA EMAIL IF BUGS OCCUR.")], [new DisplayObject("(PLEASE PROVIDE SCREENSHOTS OR ERROR MESSAGES)")], [new DisplayObject("PRESS ANY KEY TO CONTINUE")]]);
+            await WaitForKey();
+
             await this.Setup();
         } catch (e) {
             document.body.innerHTML = `${e.stack.toString()}`;

@@ -10,9 +10,51 @@ export class Player {
         this.OverlaySelection = 0;
 
         this.Health = 100;
+        this.AttackCooldown = 400;
+
+        this.Effects = {
+            AttackCooldownAdd: 0,
+            DamageAdd: 0,
+            DamageMult: 1,
+        }
 
         this.Inventory = [];
         this.EquippedItem = undefined;
+        this.EquippedArmor = undefined;
+    }
+
+    GiveDamage(DamageAmount) {
+        let Dmg = DamageAmount;
+        this.Health -= Dmg;
+    }
+
+    GetDamage() {
+        let Dmg = this.EquippedItem.GetDamage();
+        return Dmg;
+    }
+
+    GetCooldown() {
+        let CD = this.AttackCooldown;
+
+        if (this.EquippedArmor) {
+            for (const Ench of this.EquippedArmor.Enchantments) {
+                if (Ench.Type == "Damage") {
+                    if (Ench.Type == "MULTIPLY") CD *= Ench.Amount;
+                    if (Ench.Type == "ADD") CD += Ench.Amount;
+                }
+            }
+        }
+
+        if (this.EquippedItem) {
+            for (const Ench of this.EquippedItem.Enchantments) {
+                if (Ench.Type == "Damage") {
+                    if (Ench.Type == "MULTIPLY") CD *= Ench.Amount;
+                    if (Ench.Type == "ADD") CD += Ench.Amount;
+                }
+            }
+        }
+
+        return 400;
     }
 
     InventoryOverlay() {
@@ -34,7 +76,10 @@ export class Player {
                 for (const [Index, Itm] of this.Inventory.slice(0+Offset,4+Offset).entries()) {
                     const Selected = (Index+Offset == Selection);
                     const Prefix = Selected ? '*' : '';
-                    const Color = (this.EquippedItem == Itm) ? "aquamarine" : (Selected ? "coral" : "");
+                    let Color = (this.EquippedItem == Itm) ? "aquamarine" : (Selected ? "coral" : "");
+                    if (this.EquippedArmor == Itm) {
+                        Color = "magenta";
+                    }
 
                     OverlayHelper.WriteToOverlay(ContainerOverlay, `${Prefix}${Itm.Name}`, 2, Index+1, Color);
                 }

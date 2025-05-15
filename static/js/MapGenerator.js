@@ -1,6 +1,7 @@
 import { MapObject, Item, Container, Entity } from "/static/js/Object.js";
 import { Map } from "/static/js/Map.js";
 import { GetRandomItemsByDepth, Weapons } from "/static/js/Items.js";
+import { RoomVisualizer } from "/static/js/Utils.js";
 
 export class Room {
     constructor(RoomID, Type, Parent, Keys, Children) {
@@ -708,7 +709,10 @@ export class MapGenerator {
             const Parent = this.GetRandomParent();
             const KeyLocation = this.GetRandomKeyLocation();
 
-            const Type = ["fight", "loot", "rest", "boss"][Math.floor(Math.random()*4)]
+            let Type = ["fight", "loot", "rest"][Math.floor(Math.random()*3)];
+            if ( ((x+1) % 5 == 0 || x==Length-1) && !(Length-x < 5 && !x==Length-1) ) Type = "boss";
+
+            Type = "fight";
 
             const NewRoom = new Room(x+1, Type, Parent.RoomID);
             Parent.AddChild(NewRoom.RoomID);

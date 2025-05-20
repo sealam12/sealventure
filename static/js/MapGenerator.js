@@ -1,6 +1,6 @@
 import { MapObject, Item, Container, Entity } from "/static/js/Object.js";
 import { Map } from "/static/js/Map.js";
-import { GetRandomItemsByDepth, Weapons } from "/static/js/Items.js";
+import { GetRandomItemsByDepth, Weapons, Consumables } from "/static/js/Items.js";
 import { RoomVisualizer } from "/static/js/Utils.js";
 
 export class Room {
@@ -128,7 +128,9 @@ export class RoomGenerator {
                         Type.Color, 
                         Type.Name, 
                         Health, 
-                        EnemyLoot
+                        EnemyLoot,
+                        true,
+                        Damage
                     );
                     
                     Placed = true;
@@ -356,8 +358,19 @@ export class RoomGenerator {
                     Content[10][20] = new MapObject(" ", false, "white", "");
                     
                     // Add fireplace
-                    Content[10][25] = new MapObject("F", true, "orange", "Fireplace");
-                    Content[10][26] = new Container("C", true, "lime", "StarterChest", [Weapons.RustySword]);
+                    Content[10][25] = new Container("F", true, "orange", "Fireplace", [new Item("Coal", "C", 100000000, {}, [])]);
+                    Content[10][25].Tick = function() {
+                        if (this.Items.length == 0) {
+                            this.Color = "darkred";
+                            return;
+                        }
+                        const colors = ["firebrick", "red", "darkred", "orangered", "tomato", "coral", "lightcoral", "salmon", "darkorange", "orange", "gold", "yellow", "peachpuff", "mistyrose", "sandybrown", "peru", "chocolate", "saddlebrown", "brown", "maroon"];  
+                        this.Color = colors[Math.floor(Math.random()*colors.length)];
+                    };
+
+                    if (Depth <= 1) {
+                        Content[10][26] = new Container("C", true, "lime", "StarterChest", [Weapons.RustySword.Clone()]);
+                    }
                 }
                 break;
                 
@@ -376,8 +389,10 @@ export class RoomGenerator {
                 }
                 
                 // Entrance
+                Content[14][24] = new MapObject(" ", false, "white", "");
                 Content[14][25] = new MapObject(" ", false, "white", "");
-                
+                Content[14][26] = new MapObject(" ", false, "white", "");
+
                 // Decorative elements
                 for (let c = 17; c <= 32; c += 5) {
                     Content[5][c] = new MapObject("^", false, "red", "Spike");
@@ -447,11 +462,11 @@ export class RoomGenerator {
             
             // Scale healing potions with depth
             if (Depth <= 3) {
-                HealItems.push(new Item("Minor Health Potion", "h", 0, { Heal: 20 }));
+                HealItems.push(Consumables.MinorHealthPotion.Clone());
             } else if (Depth <= 7) {
-                HealItems.push(new Item("Health Potion", "h", 0, { Heal: 50 }));
+                HealItems.push(Consumables.HealthPotion.Clone());
             } else {
-                HealItems.push(new Item("Greater Health Potion", "H", 0, { Heal: 100 }));
+                HealItems.push(Consumables.GreaterHealthPotion.Clone());
                 
                 // Add bonus items for deeper levels
                 if (Depth > 10 && Math.random() < 0.5) {
@@ -508,7 +523,7 @@ export class RoomGenerator {
             const SpecialLoot = GetRandomItemsByDepth(Depth + 2, 2); // Better loot than normal
             // Place boss on the platform
 
-            Content[8][25] = new Entity("Ω", true, "crimson", BossName, BossHealth, SpecialLoot);
+            Content[8][25] = new Entity("Ω", true, "crimson", BossName, BossHealth, SpecialLoot, true, BossDamage);
             
             // Add minions for higher level bosses
             if (Depth > 5) {
@@ -518,7 +533,7 @@ export class RoomGenerator {
                     const c = 20 + Math.floor(Math.random() * 10);
                     
                     if (Content[r][c].Char === " ") {
-                        Content[r][c] = new Entity("m", true, "red", "Minion", Math.floor(BossHealth / 4), []);
+                        Content[r][c] = new Entity("m", true, "red", "Minion", Math.floor(BossHealth / 4), [], true, Math.floor(BossDamage/2));
                     }
                 }
             }
@@ -562,10 +577,10 @@ export class RoomGenerator {
             let ChestColor = "violet";
             
             if (Room.Depth > 8) {
-                ChestSymbol = "Ⓒ";
+                ChestSymbol = "C";
                 ChestColor = "cyan";
             } else if (Room.Depth > 4) {
-                ChestSymbol = "©";
+                ChestSymbol = "C";
                 ChestColor = "silver";
             }
             
@@ -620,23 +635,10 @@ export class RoomGenerator {
                 };
     
                 // Door placement - more varied based on number of children
-                if (Room.Children.length == 1) {
+                if (Index == 0) {
+                    Content[0][24+x] = EntranceObject;
+                } else if (Index == 1) {
                     Content[9+x][49] = EntranceObject;
-                } else if (Room.Children.length == 2) {
-                    const Y = (Index == 0) ? 0 : 19;
-                    Content[Y][24+x] = EntranceObject;
-                } else {
-                    // For 3+ doors, place them around the room
-                    if (Index == 0) {
-                        Content[0][24+x] = EntranceObject; // Top
-                    } else if (Index == 1) {
-                        Content[19][24+x] = EntranceObject; // Bottom
-                    } else if (Index == 2) {
-                        Content[9+x][49] = EntranceObject; // Right
-                    } else {
-                        // Additional doors on right side
-                        Content[4+x][49] = EntranceObject;
-                    }
                 }
             }
         }
@@ -711,8 +713,6 @@ export class MapGenerator {
 
             let Type = ["fight", "loot", "rest"][Math.floor(Math.random()*3)];
             if ( ((x+1) % 5 == 0 || x==Length-1) && !(Length-x < 5 && !x==Length-1) ) Type = "boss";
-
-            Type = "fight";
 
             const NewRoom = new Room(x+1, Type, Parent.RoomID);
             Parent.AddChild(NewRoom.RoomID);

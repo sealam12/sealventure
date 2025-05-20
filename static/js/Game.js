@@ -24,15 +24,18 @@ export class Game {
     static DungeonMapDisplay;
 
     static Ticks = 0;
-    static TickRate = 25;
+    static TickRate = 5;
+    static EntityTickRate = 25;
 
     static Controls = {
-        MOVE_UP: ["i"],
-        MOVE_DOWN: ["k"],
-        MOVE_LEFT: ["j"],
-        MOVE_RIGHT: ["l"],
+        MOVE_UP: ["i", "w"],
+        MOVE_DOWN: ["k", "s"],
+        MOVE_LEFT: ["j", "a"],
+        MOVE_RIGHT: ["l", "d"],
 
         CYCLE_SELECTION: ["n"],
+        CYCLE_UP: ["ArrowUp"],
+        CYCLE_DOWN: ["ArrowDown"],
         
         ATTACK: ["."],
         SELECT: ["Enter"],
@@ -44,6 +47,8 @@ export class Game {
 
         SHOW_MAP: ["p"]
     }
+
+    static PressedKeys = new Set(); 
 
     static GetKeybind(Key) {
         for (const [Keybind, Value] of Object.entries(this.Controls)) {
@@ -82,8 +87,8 @@ export class Game {
         this.SelectedMapObject = this.Map.GetObj(XY.X, XY.Y);
     }
 
-    static CycleMapSelection() {
-        this.Player.Selection += 1;
+    static SetMapSelection(Sel) {
+        this.Player.Selection = Sel;
         if (this.Player.Selection > 7) this.Player.Selection = 0;
         if (this.Player.Selection < 0) this.Player.Selection = 7;
 
@@ -101,35 +106,46 @@ export class Game {
         }
     }
 
-    static CycleOverlaySelection() {
-        this.Player.OverlaySelection += 1;
+    static CycleOverlaySelection(Increment) {
+        this.Player.OverlaySelection += Increment ? Increment : 1;
 
         this.UpdateOverlaySelection();
     }
 
-    static async HandleInput(Event) {
+    static async HandleInput(Key) {
         try {
-        const Key = Event.key;
         const Control = this.GetKeybind(Key);
 
         switch (Control) {
             case "MOVE_UP":
                 this.MovePlayer(0, -1);
+                this.SetMapSelection(0);
                 break;
             case "MOVE_DOWN":
                 this.MovePlayer(0, 1);
+                this.SetMapSelection(4);
                 break;
             case "MOVE_LEFT":
                 this.MovePlayer(-1, 0);
+                this.SetMapSelection(6);
                 break;
             case "MOVE_RIGHT":
                 this.MovePlayer(1, 0);
+                this.SetMapSelection(2);
                 break;
             case "CYCLE_SELECTION":
                 if (this.ActiveOverlay) {
                     this.CycleOverlaySelection();
-                } else {
-                    this.CycleMapSelection();
+                }
+                break;
+            case "CYCLE_UP":
+                if (this.ActiveOverlay) {
+                    this.CycleOverlaySelection(-1);
+                }
+                break;
+            case "CYCLE_DOWN":
+                if (this.ActiveOverlay) {
+                    this.CycleOverlaySelection();
                 }
                 break;
             case "OPEN_INVENTORY":
@@ -143,21 +159,46 @@ export class Game {
                     if (!Sel) break;
                     Sel.Interact(this.Player.EquippedItem);
                 }
-
+                
                 break;
             case "USE":
                 if (this.ActiveOverlay && this.ActiveOverlay.UseFunction && this.ActiveOverlay.SelectCount > 0) this.ActiveOverlay.UseFunction();
                 break;
             case "ATTACK":
-                const Sel = this.SelectedMapObject;
-                
-                if (!Sel) break;
-                if (!Sel.Attack) break;
+                if ( (Date.now() - this.LastAttack) < this.Player.GetCooldown()) break;
                 if (!this.Player.EquippedItem) break;
 
-                if ( (Date.now() - this.LastAttack) < this.Player.GetCooldown()) break;
+                const Surrounding = [
+                    [ 0, -1],
+                    [ 1,  1],
+                    [ 1,  0],
+                    [ 1,  1],
+                    [ 0,  1],
+                    [-1,  1],
+                    [-1,  0],
+                    [-1, -1],
+                ]
 
-                Sel.Attack(this.Player.GetDamage());
+                for (const Coords of Surrounding) {
+                    const CX = Coords[0];
+                    const CY = Coords[1];
+
+                    const X = this.Player.PositionX+CX;
+                    const Y = this.Player.PositionY+CY;
+
+                    if (X<0 || X>49) continue;
+                    if (Y<0 || Y>19) continue;
+
+                    const Sel = this.Map.GetObj(X, Y);
+
+                    if (!Sel) continue;
+                    if (!Sel.Attack) continue;
+
+                    Sel.Attack(this.Player.GetDamage());
+
+                    this.Display.HighlightMap(X, Y, "red");
+                }
+
                 this.LastAttack = Date.now();
 
                 break;
@@ -189,7 +230,7 @@ export class Game {
 
         SelStr += "]";
 
-        const HealthStr = `[${this.Player.Health}HP]`
+        const HealthStr = `[${this.Player.Health}HP] `;
 
         this.StandbyOverlay = new Overlay(0, 19, OverlayHelper.GenerateBlank(1, 50));
         OverlayHelper.WriteToOverlay(this.StandbyOverlay, `${HealthStr}${EquippedStr}${SelStr}`, 0, 0);
@@ -208,7 +249,7 @@ export class Game {
                         this.Map.SetObj(NewX, NewY, Obj);
                     };
                 };
-                if (Obj.Tick && (this.Ticks % this.TickRate) == 0) Obj.Tick(X, Y);
+                if (Obj.Tick && (this.Ticks % this.TickRate == 0)) Obj.Tick(X, Y);
             }
         }
     }
@@ -234,14 +275,25 @@ export class Game {
         this.Map = this.GeneratedRooms[0];
         this.CurrentRoom = 0;
     }
+
+    static async KeyPressed(E) {
+        this.HandleInput(E.key);
+    }
     
     static async Setup() {
-        $(document).keydown(this.HandleInput.bind(this));
+        $(document).keydown(this.KeyPressed.bind(this));
         this.GenerateRooms();
         this.MovePlayer(0, 0);
         
         while (true) {
             this.Ticks++;
+
+            if (this.Ticks % 500 == 0 && this.Player.Health > 100) {
+                this.Player.Health -= Math.ceil((this.Player.Health-100)/2);
+                if (this.Player.Health < 100) {
+                    this.Player.Health = 100;
+                }
+            }
 
             this.Display.ResetScreen();
             this.Display.DisplayMap(this.Map);
@@ -264,6 +316,7 @@ export class Game {
             const Sel = this.SelectedMapObjectXY;
             this.Display.HighlightMap(Sel.X, Sel.Y, "mediumturquoise");
 
+
             if (this.DungeonMapDisplay) {
                 this.Display.DisplayRaw(RoomVisualizer.Visualize(this.Rooms));
             } else {
@@ -275,8 +328,11 @@ export class Game {
 
     static async Main() {
         try {
-            this.Display.DisplayRaw([[new DisplayObject("REMEMBER: THE GAME IS IN BETA AND BUGS MAY OCCUR.")], [new DisplayObject("SOME FEATURES ARE NOT FULLY IMPLEMENTED AND UNEXPECTED BEHAVIORS MAY OCCUR.")], [new DisplayObject("PLEASE CONTACT THE DEVELOPER (MATTHEW CARMICHAEL) VIA EMAIL IF BUGS OCCUR.")], [new DisplayObject("(PLEASE PROVIDE SCREENSHOTS OR ERROR MESSAGES)")], [new DisplayObject("PRESS ANY KEY TO CONTINUE")]]);
-            await WaitForKey();
+            if (localStorage.getItem("warning_set") != "1") {
+                this.Display.DisplayRaw([[new DisplayObject("REMEMBER: THE GAME IS IN BETA AND BUGS MAY OCCUR.")], [new DisplayObject("SOME FEATURES ARE NOT FULLY IMPLEMENTED AND UNEXPECTED BEHAVIORS MAY OCCUR.")], [new DisplayObject("PLEASE CONTACT THE DEVELOPER (MATTHEW CARMICHAEL) VIA EMAIL IF BUGS OCCUR.")], [new DisplayObject("(PLEASE PROVIDE SCREENSHOTS OR ERROR MESSAGES)")], [new DisplayObject("PRESS ANY KEY TO CONTINUE")]]);
+                localStorage.setItem("warning_set", "1");
+                await WaitForKey();
+            }
 
             await this.Setup();
         } catch (e) {

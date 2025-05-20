@@ -21,15 +21,22 @@ export class Player {
         this.Inventory = [];
         this.EquippedItem = undefined;
         this.EquippedArmor = undefined;
+
+        this.DamageMultiplier = 1; // Outgoing damage multiplier
+        this.ShieldMultipler = 1; // Incoming damage multiplier
     }
 
     GiveDamage(DamageAmount) {
-        let Dmg = DamageAmount;
+        let Dmg = Math.floor(DamageAmount * this.ShieldMultipler);
         this.Health -= Dmg;
+
+        if (this.Health < 0) {
+            document.body.innerHTML = "You died, I will make a better death system later. Reload to play again with a new map.";
+        }
     }
 
     GetDamage() {
-        let Dmg = this.EquippedItem.GetDamage();
+        let Dmg = this.EquippedItem.GetDamage() * this.DamageMultiplier;
         return Dmg;
     }
 
@@ -59,16 +66,16 @@ export class Player {
 
     InventoryOverlay() {
         // Stolen from Object.js but it works OK?
-        let Origin = OverlayHelper.GenerateBox(6, 44, "Inventory", "[SELECT] To Equip");
         let ContainerOverlay = new Overlay(
             3, 
             12,
-            OverlayHelper.GenerateBox(6, 44, "Inventory", "[SELECT] To Equip"),
+            OverlayHelper.GenerateBox(6, 44, "Inventory", "[SELECT/USE] To Equip/Use"),
             this.Inventory.length, 
 
             function() {
                 if (!this.Inventory) return;
-                ContainerOverlay.Content = OverlayHelper.GenerateBox(6, 44, "Inventory", "[SELECT] To Equip");
+                
+                ContainerOverlay.Content = OverlayHelper.GenerateBox(6, 44, "Inventory", "[SELECT/USE] To Equip/Use");
                 const Selection = window.Game.Player.OverlaySelection;
 
                 let Offset = Selection > 1 ? Selection-2 : 0;
@@ -76,8 +83,8 @@ export class Player {
                 for (const [Index, Itm] of this.Inventory.slice(0+Offset,4+Offset).entries()) {
                     const Selected = (Index+Offset == Selection);
                     const Prefix = Selected ? '*' : '';
-                    let Color = (this.EquippedItem == Itm) ? "aquamarine" : (Selected ? "coral" : "");
-                    if (this.EquippedArmor == Itm) {
+                    let Color = (this.EquippedItem === Itm) ? "aquamarine" : (Selected ? "coral" : "");
+                    if (this.EquippedArmor === Itm) {
                         Color = "magenta";
                     }
 
@@ -94,7 +101,14 @@ export class Player {
                 const Item = this.Inventory[Selection];
 
                 this.EquippedItem = Item;
-            }.bind(this)
+            }.bind(this),
+
+            function() {
+                const Selection = window.Game.Player.OverlaySelection;
+                const Item = this.Inventory[Selection];
+
+                Item.Use();
+            }.bind(this),
         );
 
         window.Game.ActiveOverlay = ContainerOverlay;

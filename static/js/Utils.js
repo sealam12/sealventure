@@ -37,7 +37,7 @@ export class RoomVisualizer {
         // Always use two characters for display
         let char = window.Game.CurrentRoom == roomId ? " @" : 
                    this.rooms[roomId].Unlocked ? " *" :
-                   roomId < 10 ? ` ${roomId}` : roomId.toString();
+                   roomId < 10 ? `0${roomId}` : roomId.toString();
 
         // Draw both characters of the room display
         grid[y][x] = new DisplayObject(char[0], color);

@@ -32,8 +32,14 @@ export class Item {
         this.Metadata = Metadata || {};
     }
 
-    Use() {
-        
+    Use() {}
+
+    RemoveFromInventory() {
+        let inv = window.Game.Player.Inventory;
+        let index = inv.indexOf(this);
+        if (index > -1) {
+            window.Game.Player.Inventory.splice(index, 1);
+        }
     }
 
     GetDamage() {
@@ -47,6 +53,25 @@ export class Item {
         }
 
         return Damage;
+    }
+
+    Clone() {  
+        const clonedItem = new Item(  
+            this.Name,  
+            this.Char,  
+            this.Damage,  
+            { ...this.Metadata }, // Shallow copy of Metadata  
+            [...this.Enchantments] // Shallow copy of Enchantments  
+        );  
+    
+        // Copy custom functions  
+        for (const key in this) {  
+            if (typeof this[key] === 'function') {  
+                clonedItem[key] = this[key].bind(clonedItem);  
+            }
+        }  
+    
+        return clonedItem;  
     }
 }
 
@@ -114,24 +139,35 @@ export class Container extends MapObject {
 }
 
 export class Entity extends MapObject {
-    constructor(Char, Collision, Color, Name, Health, Inventory, Hostile) {
+    constructor(Char, Collision, Color, Name, Health, Inventory, Hostile, Damage) {
         super(Char, Collision, Color, Name);
         this.Health = Health;
         this.Inventory = Inventory || [];
 
         this.Hostile = Hostile != undefined ? Hostile : true;
+        this.Damage = Damage || 0;
+
+        this.LastAttack = window.Game.Ticks;
     }
  
     Interact(Item) {}
     Tick(X, Y) {
         if (!this.Hostile) return;
+        if (window.Game.Ticks % window.Game.EntityTickRate != 0) return;
 
         let PX = window.Game.Player.PositionX;
         let PY = window.Game.Player.PositionY;
 
-        if (distance(PX, PY, X, Y) > 8) return;
+        if (distance(PX, PY, X, Y) > 8) {
+            if ( window.Game.Ticks - this.LastAttack > 200 ) this.LastAttack = 0;
+        };
         if (distance(PX, PY, X, Y) < 1.5) {
-            window.Game.Player.GiveDamage(10);  
+            if (window.Game.Ticks - this.LastAttack > 80 && this.LastAttack != 0) {
+                window.Game.Player.GiveDamage(this.Damage); 
+                this.LastAttack = window.Game.Ticks;
+            }
+
+            if (this.LastAttack == 0) this.LastAttack = window.Game.Ticks;
         }
 
         let DiffX = PX - X;
@@ -140,7 +176,8 @@ export class Entity extends MapObject {
         let NewX = Math.min(Math.max(Math.round(DiffX), -1), 1) + X;
         let NewY = Math.min(Math.max(Math.round(DiffY), -1), 1) + Y;
 
-        if (Math.random() < 0.5) {
+        let r = Math.random();
+        if (r < 0.5) {
             NewX = X;
         } else {
             NewY = Y;

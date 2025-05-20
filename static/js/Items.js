@@ -60,6 +60,11 @@ export const Armor = {
     CelestialPlate: CreateItem("Celestial Plate", "Δ", 0)
 };
 
+
+for (const [_, Item] of Armor.entries()) {
+    Item.Metadata["ArmorSlot"] = true;
+}
+
 // Consumables
 export const Consumables = {
     // Healing
@@ -70,8 +75,15 @@ export const Consumables = {
     // Buffs
     StrengthElixir: CreateItem("Strength Elixir", "e", 0),
     ShieldPotion: CreateItem("Shield Potion", "p", 0),
-    InvisibilityPotion: CreateItem("Invisibility Potion", "i", 0)
 };
+
+function Heal(AMT) { window.Game.Player.Health += AMT; }
+Consumables.MinorHealthPotion.Use = function() {Heal(5); this.RemoveFromInventory();}
+Consumables.HealthPotion.Use = function() {Heal(15); this.RemoveFromInventory();}
+Consumables.GreaterHealthPotion.Use = function() {Heal(30); this.RemoveFromInventory();}
+
+Consumables.StrengthElixir.Use = function() {window.Game.Player.DamageMultiplier *= 1.2; this.RemoveFromInventory();}
+Consumables.ShieldPotion.Use = function() {window.Game.Player.ShieldMultiplier *= 0.9; this.RemoveFromInventory();}
 
 // Special Items
 export const SpecialItems = {
@@ -112,7 +124,6 @@ export const Tiers = {
         Weapons.VoidBlade, 
         Weapons.DragonslayerBow,
         Armor.DragonscaleArmor,
-        Consumables.InvisibilityPotion,
         SpecialItems.AncientRelic
     ],
     "5": [
@@ -154,7 +165,7 @@ export function GetRandomItemsByDepth(Depth, Count = 1) {
         const Tier = AvailableTiers[TierIndex];
         const TierItems = Tiers[Tier];
         const ItemIndex = Math.floor(Math.random() * TierItems.length);
-        Items.push(TierItems[ItemIndex]);
+        Items.push(TierItems[ItemIndex].Clone());
     }
     
     return Items;

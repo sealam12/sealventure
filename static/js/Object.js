@@ -23,11 +23,12 @@ export class Enchantment {
 }
 
 export class Item {
-    constructor(Name, Char, Damage, Metadata, Enchantments) {
+    constructor(Name, Char, Damage, Worth, Metadata, Enchantments) {
         this.Name = Name;
         this.Char = Char;
         this.BaseDamage = Damage;
         this.Damage = Damage;
+        this.Worth = Worth;
         this.Enchantments = Enchantments || [];
         this.Metadata = Metadata || {};
     }
@@ -60,9 +61,10 @@ export class Item {
             this.Name,  
             this.Char,  
             this.Damage,  
+            this.Worth,
             { ...this.Metadata }, // Shallow copy of Metadata  
             [...this.Enchantments] // Shallow copy of Enchantments  
-        );  
+        );
     
         // Copy custom functions  
         for (const key in this) {  

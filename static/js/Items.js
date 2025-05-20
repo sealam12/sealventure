@@ -1,80 +1,77 @@
 import { Item } from "/static/js/Object.js";
 
 // Item factory function to create items with consistent properties
-function CreateItem(Name, Char, Damage, Metadata = {}) {
+function CreateItem(Name, Char, Damage, Worth, Metadata = {}) {
     const DefaultMetadata = {
-        Description: "",
-        Rarity: 1, // 1-5 scale (common to legendary)
-        Effects: [],
         ...Metadata
     };
     
-    const Itm = new Item(Name, Char, Damage, DefaultMetadata);
+    const Itm = new Item(Name, Char, Damage, Worth, DefaultMetadata);
     return Itm;
 }
 
 // Weapons
 export const Weapons = {
     // Tier 1 (Levels 1-3)
-    RustySword: CreateItem("Rusty Sword", "s", 3),
-    WoodenBow: CreateItem("Wooden Bow", "b", 2),
-    BrokenDagger: CreateItem("Broken Dagger", "d", 1),
+    RustySword: CreateItem("Rusty Sword", "s", 3, 4),
+    WoodenBow: CreateItem("Wooden Bow", "b", 2, 4),
+    BrokenDagger: CreateItem("Broken Dagger", "d", 1, 6),
     
     // Tier 2 (Levels 4-6)
-    IronSword: CreateItem("Iron Sword", "s", 5),
-    HunterBow: CreateItem("Hunter's Bow", "b", 4),
-    SteelDagger: CreateItem("Steel Dagger", "d", 3),
+    IronSword: CreateItem("Iron Sword", "s", 5, 8),
+    HunterBow: CreateItem("Hunter's Bow", "b", 4, 8),
+    SteelDagger: CreateItem("Steel Dagger", "d", 3, 12),
     
     // Tier 3 (Levels 7-9)
-    FlamingSword: CreateItem("Flaming Sword", "S", 8),
-    FrostBow: CreateItem("Frost Bow", "B", 7),
-    ThunderHammer: CreateItem("Thunder Hammer", "H", 10),
+    FlamingSword: CreateItem("Flaming Sword", "S", 8, 22),
+    FrostBow: CreateItem("Frost Bow", "B", 7, 22),
+    ThunderHammer: CreateItem("Thunder Hammer", "H", 10, 24),
     
     // Tier 4 (Levels 10-12)
-    VoidBlade: CreateItem("Void Blade", "S", 12),
-    DragonslayerBow: CreateItem("Dragonslayer Bow", "B", 11),
+    VoidBlade: CreateItem("Void Blade", "S", 12, 52),
+    DragonslayerBow: CreateItem("Dragonslayer Bow", "B", 11, 54),
     
     // Tier 5 (Levels 13+)
-    CelestialGreatsword: CreateItem("Celestial Greatsword", "Ω", 15),
-    EtherealBow: CreateItem("Ethereal Bow", "Φ", 14)
+    CelestialGreatsword: CreateItem("Celestial Greatsword", "Ω", 15, 96),
+    EtherealBow: CreateItem("Ethereal Bow", "Φ", 14, 96)
 };
 
 // Armor
 export const Armor = {
     // Tier 1
-    ClothRobes: CreateItem("Cloth Robes", "r", 0),
-    LeatherArmor: CreateItem("Leather Armor", "a", 0),
+    ClothRobes: CreateItem("Cloth Robes", "r", 0, 4,               {DamageMultiplier: 0.99}),
+    LeatherArmor: CreateItem("Leather Armor", "a", 0, 4,           {DamageMultiplier: 0.95}),
     
     // Tier 2
-    StuddedLeather: CreateItem("Studded Leather", "a", 0),
-    ChainmailArmor: CreateItem("Chainmail Armor", "A", 0),
+    StuddedLeather: CreateItem("Studded Leather", "a", 0, 8,       {DamageMultiplier: 0.85}),
+    ChainmailArmor: CreateItem("Chainmail Armor", "A", 0, 8,       {DamageMultiplier: 0.8}),
     
     // Tier 3
-    ScaleMail: CreateItem("Scale Mail", "A", 0),
-    EnchantedCloak: CreateItem("Enchanted Cloak", "C", 0),
+    ScaleMail: CreateItem("Scale Mail", "A", 0, 14,                {DamageMultiplier: 0.75}),
+    EnchantedCloak: CreateItem("Enchanted Cloak", "C", 0, 18,      {DamageMultiplier: 0.70}),
     
     // Tier 4
-    DragonscaleArmor: CreateItem("Dragonscale Armor", "A", 0),
+    DragonscaleArmor: CreateItem("Dragonscale Armor", "A", 0, 22,  {DamageMultiplier: 0.60}),
     
     // Tier 5
-    CelestialPlate: CreateItem("Celestial Plate", "Δ", 0)
+    CelestialPlate: CreateItem("Celestial Plate", "Δ", 0, 32,      {DamageMultiplier: 0.45})
 };
 
 
-for (const [_, Item] of Armor.entries()) {
+for (const [Key, Item] of Object.entries(Armor)) {
     Item.Metadata["ArmorSlot"] = true;
 }
 
 // Consumables
 export const Consumables = {
     // Healing
-    MinorHealthPotion: CreateItem("Minor Health Potion", "h", 0),
-    HealthPotion: CreateItem("Health Potion", "h", 0),
-    GreaterHealthPotion: CreateItem("Greater Health Potion", "H", 0),
+    MinorHealthPotion: CreateItem("Minor Health Potion", "h", 0, 4),
+    HealthPotion: CreateItem("Health Potion", "h", 0, 16),
+    GreaterHealthPotion: CreateItem("Greater Health Potion", "H", 64),
     
     // Buffs
-    StrengthElixir: CreateItem("Strength Elixir", "e", 0),
-    ShieldPotion: CreateItem("Shield Potion", "p", 0),
+    StrengthElixir: CreateItem("Strength Elixir", "e", 0, 48),
+    ShieldPotion: CreateItem("Shield Potion", "p", 0, 48),
 };
 
 function Heal(AMT) { window.Game.Player.Health += AMT; }
@@ -87,8 +84,8 @@ Consumables.ShieldPotion.Use = function() {window.Game.Player.ShieldMultiplier *
 
 // Special Items
 export const SpecialItems = {
-    DungeonKey: CreateItem("Dungeon Key", "k", 0),
-    AncientRelic: CreateItem("Ancient Relic", "r", 0)
+    DungeonKey: CreateItem("Dungeon Key", "k", 0, 128),
+    AncientRelic: CreateItem("Ancient Relic", "r", 0, 256)
 };
 
 // Organize items by tier for easy access

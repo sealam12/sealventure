@@ -23,11 +23,18 @@ export class Player {
         this.EquippedArmor = undefined;
 
         this.DamageMultiplier = 1; // Outgoing damage multiplier
-        this.ShieldMultipler = 1; // Incoming damage multiplier
+        this.ShieldMultiplier = 1; // Incoming damage multiplier
+
+        this.Money = 0;
     }
 
     GiveDamage(DamageAmount) {
-        let Dmg = Math.floor(DamageAmount * this.ShieldMultipler);
+        let Dmg = Math.floor(DamageAmount * this.ShieldMultiplier);
+
+        if (this.EquippedArmor && this.EquippedArmor.Metadata) {
+            Dmg = Math.floor( Dmg * ( this.EquippedArmor.Metadata.DamageMultiplier || 1 ) );
+        }
+
         this.Health -= Dmg;
 
         if (this.Health < 0) {
@@ -100,7 +107,12 @@ export class Player {
                 const Selection = window.Game.Player.OverlaySelection;
                 const Item = this.Inventory[Selection];
 
-                this.EquippedItem = Item;
+                if (!Item || !Item.Metadata) return;
+                if (Item.Metadata.ArmorSlot) {
+                    this.EquippedArmor = Item;
+                } else {
+                    this.EquippedItem = Item;
+                }
             }.bind(this),
 
             function() {

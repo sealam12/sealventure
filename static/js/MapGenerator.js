@@ -1,6 +1,6 @@
 import { MapObject, Item, Container, Entity } from "/static/js/Object.js";
 import { Map } from "/static/js/Map.js";
-import { GetRandomItemsByDepth, Weapons, Consumables } from "/static/js/Items.js";
+import { GetRandomItemsByDepth, Weapons, Consumables, Armor } from "/static/js/Items.js";
 import { RoomVisualizer } from "/static/js/Utils.js";
 
 export class Room {
@@ -358,7 +358,7 @@ export class RoomGenerator {
                     Content[10][20] = new MapObject(" ", false, "white", "");
                     
                     // Add fireplace
-                    Content[10][25] = new Container("F", true, "orange", "Fireplace", [new Item("Coal", "C", 100000000, {}, [])]);
+                    Content[10][25] = new Container("F", true, "orange", "Fireplace", [ new Item("Coal", "C", 100000000, 2, {}, []) ]);
                     Content[10][25].Tick = function() {
                         if (this.Items.length == 0) {
                             this.Color = "darkred";
@@ -470,7 +470,7 @@ export class RoomGenerator {
                 
                 // Add bonus items for deeper levels
                 if (Depth > 10 && Math.random() < 0.5) {
-                    HealItems.push(new Item("Shield Potion", "p", 0, { Effects: ["Temporary Shield"] }));
+                    HealItems.push(Consumables.ShieldPotion.Clone());
                 }
             }
             
@@ -567,7 +567,7 @@ export class RoomGenerator {
             const KLY = Math.floor(Math.random() * (17 - 2 + 1)) + 2;
             
             // Create key with visual indicator of which door it unlocks
-            const KeyItem = new Item(`Key - Door ${Key}`, "k", 0, { 
+            const KeyItem = new Item(`Key - Door ${Key}`, "k", 0, 0, { 
                 RoomID: Key,
                 Description: `A key that unlocks door ${Key}`
             });

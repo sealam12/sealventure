@@ -516,6 +516,7 @@ export class RoomGenerator {
                         }.bind(this)
                     );
     
+                    window.Game.Player.OverlaySelection = 0;
                     window.Game.ActiveOverlay = ContainerOverlay;
                 }
     
@@ -563,6 +564,7 @@ export class RoomGenerator {
                         }.bind(this)
                     );
     
+                    window.Game.Player.OverlaySelection = 0;
                     window.Game.ActiveOverlay = ContainerOverlay;
                 }
             }

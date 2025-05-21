@@ -157,6 +157,7 @@ export class Player {
             }.bind(this),
         );
 
+        window.Game.Player.OverlaySelection = 0;
         window.Game.ActiveOverlay = ContainerOverlay;
     }
 

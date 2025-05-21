@@ -40,6 +40,7 @@ export function InspectItem(Item) {
         }
     );
 
+    window.Game.Player.OverlaySelection = 0;
     window.Game.ActiveOverlay = InspectOverlay;
 }
 

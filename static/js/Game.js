@@ -40,7 +40,7 @@ export class Game {
         ATTACK: ["."],
         SELECT: ["Enter"],
         USE: [";"],
-        AUX: ["'"],
+        INSPECT: ["'"],
         
         OPEN_INVENTORY: ["m"],
         CLOSE_ALL: ["Escape", ","],
@@ -202,6 +202,11 @@ export class Game {
                 this.LastAttack = Date.now();
 
                 break;
+            case "INSPECT":
+                if (this.ActiveOverlay && this.ActiveOverlay.InspectFunction) {
+                    this.ActiveOverlay.InspectFunction();
+                }
+                break;
             case "SHOW_MAP":
                 this.DungeonMapDisplay = true;
                 break;
@@ -230,10 +235,10 @@ export class Game {
 
         SelStr += "]";
 
-        const HealthStr = `[${this.Player.Health}HP] `;
+        const PlayerStr = `[${this.Player.Health}HP] [${this.Player.Money}₡]`;
 
         this.StandbyOverlay = new Overlay(0, 19, OverlayHelper.GenerateBlank(1, 50));
-        OverlayHelper.WriteToOverlay(this.StandbyOverlay, `${HealthStr}${EquippedStr}${SelStr}`, 0, 0);
+        OverlayHelper.WriteToOverlay(this.StandbyOverlay, `${PlayerStr}${EquippedStr}${SelStr}`, 0, 0);
     }
 
     static UpdateMap() {
@@ -329,7 +334,7 @@ export class Game {
     static async Main() {
         try {
             if (localStorage.getItem("warning_set") != "1") {
-                this.Display.DisplayRaw([[new DisplayObject("REMEMBER: THE GAME IS IN BETA AND BUGS MAY OCCUR.")], [new DisplayObject("SOME FEATURES ARE NOT FULLY IMPLEMENTED AND UNEXPECTED BEHAVIORS MAY OCCUR.")], [new DisplayObject("PLEASE CONTACT THE DEVELOPER (MATTHEW CARMICHAEL) VIA EMAIL IF BUGS OCCUR.")], [new DisplayObject("(PLEASE PROVIDE SCREENSHOTS OR ERROR MESSAGES)")], [new DisplayObject("PRESS ANY KEY TO CONTINUE")]]);
+                this.Display.DisplayRaw([[new DisplayObject("WARNING: THIS GAME HAS A VERY STEEP LEARNING CURVE.")], [new DisplayObject("REMEMBER: THE GAME IS IN BETA AND BUGS MAY OCCUR.")], [new DisplayObject("SOME FEATURES ARE NOT FULLY IMPLEMENTED AND UNEXPECTED BEHAVIORS MAY OCCUR.")], [new DisplayObject("PLEASE CONTACT THE DEVELOPER (MATTHEW CARMICHAEL) VIA EMAIL IF BUGS OCCUR.")], [new DisplayObject("(PLEASE PROVIDE SCREENSHOTS OR ERROR MESSAGES)")], [new DisplayObject("PRESS ANY KEY TO CONTINUE")]]);
                 localStorage.setItem("warning_set", "1");
                 await WaitForKey();
             }

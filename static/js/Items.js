@@ -36,6 +36,12 @@ export const Weapons = {
     EtherealBow: CreateItem("Ethereal Bow", "Φ", 14, 96)
 };
 
+Weapons.WoodenBow.Metadata.ProjectileLauncher = true;
+Weapons.HunterBow.Metadata.ProjectileLauncher = true;
+Weapons.FrostBow.Metadata.ProjectileLauncher = true;
+Weapons.DragonslayerBow.Metadata.ProjectileLauncher = true;
+Weapons.EtherealBow.Metadata.ProjectileLauncher = true;
+
 // Armor
 export const Armor = {
     // Tier 1

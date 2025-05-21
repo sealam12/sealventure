@@ -201,4 +201,32 @@ export class Entity extends MapObject {
     }
 }
 
+export class Projectile extends MapObject {
+    constructor(Char, Color, Name, Damage, Velocity) {
+        super(Char, true, Color, Name);
+
+        this.Damage = Damage || 0;
+        this.Velocity = Velocity || [1, 0];
+
+        this.LastX = -1;
+        this.LastY = -1;
+    }
+
+    Tick(X, Y) {
+        if (this.LastX == X && this.LastY == Y) {
+            this.ReplaceWith = new MapObject(" ", false);
+            return;
+        }
+
+        this.LastY = Y;
+        this.LastX = X;
+
+        const V = this.Velocity;
+        let NX = X + V[0];
+        let NY = Y + V[1];
+
+        this.MoveTo = [NX, NY];
+    }
+}
+
 // WRITTEN BY MATTHEW CARMICHAEL, 2025

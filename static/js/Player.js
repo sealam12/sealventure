@@ -1,5 +1,6 @@
 import { OverlayHelper } from "/static/js/OverlayHelper.js";
 import { Overlay } from "/static/js/Display.js";
+import { InspectItem } from "/static/js/Utils.js";
 
 export class Player {
     constructor(X, Y) {
@@ -25,7 +26,7 @@ export class Player {
         this.DamageMultiplier = 1; // Outgoing damage multiplier
         this.ShieldMultiplier = 1; // Incoming damage multiplier
 
-        this.Money = 0;
+        this.Money = 20;
     }
 
     GiveDamage(DamageAmount) {
@@ -76,7 +77,7 @@ export class Player {
         let ContainerOverlay = new Overlay(
             3, 
             12,
-            OverlayHelper.GenerateBox(6, 44, "Inventory", "[SELECT/USE] To Equip/Use"),
+            OverlayHelper.GenerateBox(6, 44, "Inventory", "[SELECT/USE/AUX] To Equip/Use/Inspect"),
             this.Inventory.length, 
 
             function() {
@@ -120,6 +121,13 @@ export class Player {
                 const Item = this.Inventory[Selection];
 
                 Item.Use();
+            }.bind(this),
+
+            function() {
+                const Selection = window.Game.Player.OverlaySelection;
+                const Item = this.Inventory[Selection];
+
+                InspectItem(Item);
             }.bind(this),
         );
 

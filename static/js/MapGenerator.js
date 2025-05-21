@@ -1,7 +1,8 @@
-import { MapObject, Item, Container, Entity } from "/static/js/Object.js";
+import { MapObject, Item, Container, Entity, Projectile } from "/static/js/Object.js";
 import { Map } from "/static/js/Map.js";
 import { GetRandomItemsByDepth, Weapons, Consumables, Armor } from "/static/js/Items.js";
-import { RoomVisualizer } from "/static/js/Utils.js";
+import { Overlay } from "/static/js/Display.js";
+import { OverlayHelper } from "/static/js/OverlayHelper.js";
 
 export class Room {
     constructor(RoomID, Type, Parent, Keys, Children) {
@@ -329,13 +330,13 @@ export class RoomGenerator {
                     
                     // Decorative elements
                     for (let c = 20; c < 30; c += 3) {
-                        Content[7][c] = new MapObject("*", false, "gold", "Ornament");
-                        Content[12][c] = new MapObject("*", false, "gold", "Ornament");
+                        Content[7][c] = new MapObject("*", true, "gold", "Ornament");
+                        Content[12][c] = new MapObject("*", true, "gold", "Ornament");
                     }
                     
                     for (let r = 8; r < 12; r += 2) {
-                        Content[r][18] = new MapObject("*", false, "gold", "Ornament");
-                        Content[r][31] = new MapObject("*", false, "gold", "Ornament");
+                        Content[r][18] = new MapObject("*", true, "gold", "Ornament");
+                        Content[r][31] = new MapObject("*", true, "gold", "Ornament");
                     }
                     
                     // Entrance
@@ -367,10 +368,6 @@ export class RoomGenerator {
                         const colors = ["firebrick", "red", "darkred", "orangered", "tomato", "coral", "lightcoral", "salmon", "darkorange", "orange", "gold", "yellow", "peachpuff", "mistyrose", "sandybrown", "peru", "chocolate", "saddlebrown", "brown", "maroon"];  
                         this.Color = colors[Math.floor(Math.random()*colors.length)];
                     };
-
-                    if (Depth <= 1) {
-                        Content[10][26] = new Container("C", true, "lime", "StarterChest", [Weapons.RustySword.Clone()]);
-                    }
                 }
                 break;
                 
@@ -473,29 +470,104 @@ export class RoomGenerator {
                     HealItems.push(Consumables.ShieldPotion.Clone());
                 }
             }
-            
-            // Find a good spot for the healing chest
-            let Placed = false;
-            for (let r = 9; r < 12 && !Placed; r++) {
-                for (let c = 23; c < 28 && !Placed; c++) {
-                    if (Content[r][c].Char === " ") {
-                        Content[r][c] = new Container("H", true, "green", "Health Chest", HealItems);
-                        Placed = true;
-                    }
+
+            if (Depth <= 1) {
+                Content[11][21] = new Container("C", true, "lime", "StarterChest", [Weapons.RustySword.Clone(), Armor.LeatherArmor.Clone()]);
+            } else {
+                Content[9][29] = new MapObject("M", true, "yellow", "Merchant [Sell]");
+    
+                Content[9][29].Interact = function() {
+                    let ContainerOverlay = new Overlay(
+                        3, 
+                        12,
+                        OverlayHelper.GenerateBox(6, 44, this.Name, "[SELECT] To Sell"),
+                        window.Game.Player.Inventory.length, 
+    
+                        function() {
+                            ContainerOverlay.Content = OverlayHelper.GenerateBox(6, 44, this.Name, "[SELECT] To Sell");
+                            const Selection = window.Game.Player.OverlaySelection;
+    
+                            let Offset = Selection > 1 ? Selection-2 : 0;
+    
+                            for (const [Index, Itm] of window.Game.Player.Inventory.slice(0+Offset,4+Offset).entries()) {
+                                const Selected = (window.Game.Player.Inventory.indexOf(Itm) == Selection);
+                                const Prefix = Selected ? '*' : '';
+                                const Color = Selected ? "coral" : "";
+    
+                                OverlayHelper.WriteToOverlay(ContainerOverlay, `${Prefix}${Itm.Name} ${Itm.Worth}₡`, 2, Index+1, Color);
+                            }
+    
+                            if (window.Game.Player.Inventory.length == 0) {
+                                OverlayHelper.WriteToOverlay(ContainerOverlay, "Inventory Empty", 2, 1, "goldenrod");
+                            }
+                        }.bind(this),
+    
+                        function() {
+                            const Selection = window.Game.Player.OverlaySelection;
+                            const Item = window.Game.Player.Inventory[Selection];
+    
+                            if (Item && Item.Metadata && Item.Metadata.RoomID) {
+                                return;
+                            }
+    
+                            window.Game.Player.Money += Item.Worth;
+                            Item.RemoveFromInventory();
+                            ContainerOverlay.SelectCount = window.Game.Player.Inventory.length;
+                        }.bind(this)
+                    );
+    
+                    window.Game.ActiveOverlay = ContainerOverlay;
+                }
+    
+                Content[11][29] = new MapObject("M", true, "aqua", "Merchant [Buy]");
+    
+                let MerchantItems = GetRandomItemsByDepth(Depth, Math.round(Math.random()*5))
+    
+                Content[11][29].Interact = function() {
+                    let ContainerOverlay = new Overlay(
+                        3,
+                        12,
+                        OverlayHelper.GenerateBox(6, 44, this.Name, "[SELECT] To Buy"),
+                        MerchantItems.length, 
+    
+                        function() {
+                            ContainerOverlay.Content = OverlayHelper.GenerateBox(6, 44, this.Name, "[SELECT] To Buy");
+                            const Selection = window.Game.Player.OverlaySelection;
+    
+                            let Offset = Selection > 1 ? Selection-2 : 0;
+    
+                            for (const [Index, Itm] of MerchantItems.slice(0+Offset,4+Offset).entries()) {
+                                const Selected = (MerchantItems.indexOf(Itm) == Selection);
+                                const Prefix = Selected ? '*' : '';
+                                const Color = Selected ? "coral" : "";
+    
+                                OverlayHelper.WriteToOverlay(ContainerOverlay, `${Prefix}${Itm.Name} ${Itm.Worth}₡`, 2, Index+1, Color);
+                            }
+    
+                            if (MerchantItems.length == 0) {
+                                OverlayHelper.WriteToOverlay(ContainerOverlay, "Merchant Sold Out", 2, 1, "goldenrod");
+                            }
+                        }.bind(this),
+    
+                        function() {
+                            const Selection = window.Game.Player.OverlaySelection;
+                            const Item = MerchantItems[Selection];
+    
+                            if (!(window.Game.Player.Money >= Item.Worth)) return;
+    
+                            window.Game.Player.Money -= Item.Worth;
+                            MerchantItems.splice(MerchantItems.indexOf(Item), 1);
+                            window.Game.Player.Inventory.push(Item);
+    
+                            ContainerOverlay.SelectCount = MerchantItems.length;
+                        }.bind(this)
+                    );
+    
+                    window.Game.ActiveOverlay = ContainerOverlay;
                 }
             }
             
-            // If we couldn't place it in the ideal spot, find any open spot
-            if (!Placed) {
-                for (let r = 5; r < 15 && !Placed; r++) {
-                    for (let c = 15; c < 35 && !Placed; c++) {
-                        if (Content[r][c].Char === " ") {
-                            Content[r][c] = new Container("H", true, "green", "Health Chest", HealItems);
-                            Placed = true;
-                        }
-                    }
-                }
-            }
+            Content[9][21] = new Container("H", true, "green", "Health Chest", HealItems);
         }
         
         // Add boss for boss rooms
@@ -670,6 +742,8 @@ export class RoomGenerator {
 
         // Generate room content based on type and depth
         Content = this.GenerateRoomContent(Content, Room);
+
+        //Content[1][2] = new Projectile(">", "red", 100);
 
         return new Map(Content);
     }

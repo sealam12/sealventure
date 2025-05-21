@@ -2,7 +2,7 @@ import { sleep } from "/static/js/Utils.js";
 import { DisplayObject } from "/static/js/Object.js";
 
 export class Overlay {
-    constructor(StartX, StartY, Content, SelectCount, TickFunction, SelectFunction, UseFunction) {
+    constructor(StartX, StartY, Content, SelectCount, TickFunction, SelectFunction, UseFunction, InspectFunction) {
         this.StartX = StartX;
         this.StartY = StartY;
         this.Content = Content;
@@ -10,6 +10,7 @@ export class Overlay {
         this.TickFunction = TickFunction;
         this.SelectFunction = SelectFunction;
         this.UseFunction = UseFunction;
+        this.InspectFunction = InspectFunction;
     }
 }
 

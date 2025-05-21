@@ -1,4 +1,6 @@
 import { DisplayObject } from "/static/js/Object.js";
+import { Overlay } from "/static/js/Display.js";
+import { OverlayHelper } from "/static/js/OverlayHelper.js";
 
 export async function WaitForKey() {
   return new Promise((resolve) => {
@@ -18,6 +20,27 @@ export function distance(x1,y1,x2,y2) {
     let c2 = (a**2) + (b**2)
     let c = Math.sqrt(c2);
     return Math.floor(c);
+}
+
+export function InspectItem(Item) {
+    let InspectOverlay = new Overlay(
+        3, 
+        12,
+        OverlayHelper.GenerateBox(6, 44, "Inventory", "[N/A]"),
+        0,
+
+        function() {
+            InspectOverlay.Content = OverlayHelper.GenerateBox(6, 44, "Inventory", "[N/A]");
+            OverlayHelper.WriteToOverlay(InspectOverlay, `${Item.Name} | ${Item.Worth}₡`, 2, 1, "goldenrod");
+            OverlayHelper.WriteToOverlay(InspectOverlay, `${Item.Damage} DMG`, 2, 2, "");
+
+            if (Item.Metadata.ArmorSlot) {
+                OverlayHelper.WriteToOverlay(InspectOverlay, `${Item.Metadata.DamageMultiplier} INCOMING DMG MULT`, 2, 3, "");
+            }
+        }
+    );
+
+    window.Game.ActiveOverlay = InspectOverlay;
 }
 
 export class RoomVisualizer {

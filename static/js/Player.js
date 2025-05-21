@@ -74,21 +74,47 @@ export class Player {
 
     InventoryOverlay() {
         // Stolen from Object.js but it works OK?
+        const NameSortedInventory = this.Inventory.toSorted(function(A, B) {
+            const NameA = A.Name.toUpperCase();
+            const NameB = B.Name.toUpperCase();
+
+            if (NameA < NameB) {
+                return -1;
+            }
+            if (NameA > NameB) {
+                return 1;
+            }
+            return 0;
+        })
+
+        const SortedInventory = NameSortedInventory.toSorted(function(A, B) {
+            if (this.EquippedItem) {
+                if (this.EquippedItem === A) return -1;
+                if (this.EquippedItem === B) return 1;
+            }
+            if (this.EquippedArmor) {
+                if (this.EquippedArmor === A && this.EquippedItem !== B) return -1;
+                if (this.EquippedArmor === B && this.EquippedItem !== A) return 1;
+            }
+
+            return 0;
+        }.bind(this))
+
         let ContainerOverlay = new Overlay(
             3, 
             12,
             OverlayHelper.GenerateBox(6, 44, "Inventory", "[SELECT/USE/AUX] To Equip/Use/Inspect"),
-            this.Inventory.length, 
+            SortedInventory.length, 
 
             function() {
-                if (!this.Inventory) return;
+                if (!SortedInventory) return;
                 
                 ContainerOverlay.Content = OverlayHelper.GenerateBox(6, 44, "Inventory", "[SELECT/USE] To Equip/Use");
                 const Selection = window.Game.Player.OverlaySelection;
 
                 let Offset = Selection > 1 ? Selection-2 : 0;
 
-                for (const [Index, Itm] of this.Inventory.slice(0+Offset,4+Offset).entries()) {
+                for (const [Index, Itm] of SortedInventory.slice(0+Offset,4+Offset).entries()) {
                     const Selected = (Index+Offset == Selection);
                     const Prefix = Selected ? '*' : '';
                     let Color = (this.EquippedItem === Itm) ? "aquamarine" : (Selected ? "coral" : "");
@@ -99,14 +125,14 @@ export class Player {
                     OverlayHelper.WriteToOverlay(ContainerOverlay, `${Prefix}${Itm.Name}`, 2, Index+1, Color);
                 }
 
-                if (this.Inventory.length == 0) {
+                if (SortedInventory.length == 0) {
                     OverlayHelper.WriteToOverlay(ContainerOverlay, "Inventory Empty", 2, 1, "goldenrod");
                 }
             }.bind(this),
 
             function() {
                 const Selection = window.Game.Player.OverlaySelection;
-                const Item = this.Inventory[Selection];
+                const Item = SortedInventory[Selection];
 
                 if (!Item || !Item.Metadata) return;
                 if (Item.Metadata.ArmorSlot) {
@@ -118,14 +144,14 @@ export class Player {
 
             function() {
                 const Selection = window.Game.Player.OverlaySelection;
-                const Item = this.Inventory[Selection];
+                const Item = SortedInventory[Selection];
 
                 Item.Use();
             }.bind(this),
 
             function() {
                 const Selection = window.Game.Player.OverlaySelection;
-                const Item = this.Inventory[Selection];
+                const Item = SortedInventory[Selection];
 
                 InspectItem(Item);
             }.bind(this),

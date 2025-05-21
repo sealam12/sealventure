@@ -222,7 +222,6 @@ export class Game {
     }
 
     static UpdateStandbyOverlay() {
-        let EquippedStr = this.Player.EquippedItem ? `[E: ${this.Player.EquippedItem.Name}] ` : "[E: NONE] ";
         let SelStr = this.SelectedMapObject ? `[${this.SelectedMapObject.Name}` : "[NONE";
 
         if (this.SelectedMapObject && this.SelectedMapObject.Health) {
@@ -235,10 +234,10 @@ export class Game {
 
         SelStr += "]";
 
-        const PlayerStr = `[${this.Player.Health}HP] [${this.Player.Money}₡]`;
+        const PlayerStr = `[${this.Player.Health}HP] [${this.Player.Money}₡] `;
 
         this.StandbyOverlay = new Overlay(0, 19, OverlayHelper.GenerateBlank(1, 50));
-        OverlayHelper.WriteToOverlay(this.StandbyOverlay, `${PlayerStr}${EquippedStr}${SelStr}`, 0, 0);
+        OverlayHelper.WriteToOverlay(this.StandbyOverlay, `${PlayerStr}${SelStr}`, 0, 0);
     }
 
     static UpdateMap() {

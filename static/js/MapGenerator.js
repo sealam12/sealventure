@@ -472,7 +472,7 @@ export class RoomGenerator {
             }
 
             if (Depth <= 1) {
-                Content[11][21] = new Container("C", true, "lime", "StarterChest", [Weapons.RustySword.Clone(), Armor.LeatherArmor.Clone()]);
+                Content[11][21] = new Container("C", true, "lime", "StarterChest", [Weapons.RustySword.Clone(), Armor.LeatherArmor.Clone(), Weapons.WoodenBow.Clone()]);
             } else {
                 Content[9][29] = new MapObject("M", true, "yellow", "Merchant [Sell]");
     
@@ -575,7 +575,7 @@ export class RoomGenerator {
         // Add boss for boss rooms
         if (Type === "boss") {
             // Create a boss with scaled difficulty
-            const BossHealth = 20 + (Depth * 5);
+            const BossHealth = 30 + (Depth * 5);
             const BossDamage = 3 + Math.floor(Depth * 0.8);
             
             // Boss names based on depth
@@ -781,6 +781,7 @@ export class MapGenerator {
     static GenerateRooms(Length) {
         this.Rooms = [];
         const StartingRoom = new Room(0, "rest", undefined);
+        StartingRoom.Unlocked = true;
         this.Rooms.push(StartingRoom);
 
         for (let x=0; x<Length; x++) {

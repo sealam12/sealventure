@@ -87,6 +87,20 @@ export class MapObject {
 
     Interact(Item) {}
     Tick() {}
+
+    Clone() {
+        const ClonedObj = Object.create(Object.getPrototypeOf(this));
+        // Copy custom functions  
+        for (const key in this) {
+            if (typeof this[key] === 'function') {  
+                ClonedObj[key] = this[key].bind(ClonedObj);  
+            } else {
+                ClonedObj[key] = this[key];
+            }
+        }  
+    
+        return ClonedObj;  
+    }
 }
 
 
@@ -211,22 +225,31 @@ export class Projectile extends MapObject {
 
         this.LastX = -1;
         this.LastY = -1;
+
+        this.Projectile = true;
     }
 
     Tick(X, Y) {
-        if (this.LastX == X && this.LastY == Y) {
-            this.ReplaceWith = new MapObject(" ", false);
-            return;
-        }
-
-        this.LastY = Y;
-        this.LastX = X;
-
         const V = this.Velocity;
+
+        if (V[0] ==  0 && V[1] ==  1) this.Char = "v"
+        if (V[0] ==  0 && V[1] == -1) this.Char = "^";
+        if (V[0] == -1 && V[1] ==  0) this.Char = "<";
+        if (V[0] ==  1 && V[1] ==  0) this.Char = ">";
+
         let NX = X + V[0];
         let NY = Y + V[1];
-
+        
         this.MoveTo = [NX, NY];
+
+        const NextObj = window.Game.Map.GetObj(NX, NY);
+        if (NextObj.Collision) {
+            if (NextObj.Projectile) { return; }
+    
+            this.ReplaceWith = new MapObject(" ", false);
+            if (window.Game.Map.GetObj(NX, NY).Attack) window.Game.Map.GetObj(NX, NY).Attack(this.Damage);
+            return;
+        }
     }
 }
 

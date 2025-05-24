@@ -45,7 +45,8 @@ export class Game {
         OPEN_INVENTORY: ["m"],
         CLOSE_ALL: ["Escape", ","],
 
-        SHOW_MAP: ["p"]
+        SHOW_MAP: ["p"],
+        CONTROLS: ["c"],
     }
 
     static PressedKeys = new Set(); 
@@ -168,6 +169,24 @@ export class Game {
                 if ( (Date.now() - this.LastAttack) < this.Player.GetCooldown()) break;
                 if (!this.Player.EquippedItem) break;
 
+                if (this.Player.EquippedItem.Metadata.ProjectileLauncher && !this.SelectedMapObject.Collision) {
+                    const S = this.SelectedMapObjectXY;
+
+                    let Projectile = this.Player.EquippedItem.Metadata.Projectile.Clone();
+                    Projectile.Damage = this.Player.EquippedItem.Damage;
+
+                    let DiffX = S.X - this.Player.PositionX
+                    let DiffY = S.Y - this.Player.PositionY
+
+                    Projectile.Velocity = [DiffX, DiffY];
+
+                    this.Map.SetObj(S.X, S.Y, Projectile);
+
+                    this.LastAttack = Date.now();
+
+                    return;
+                }
+
                 const Surrounding = [
                     [ 0, -1],
                     [ 1,  1],
@@ -209,6 +228,87 @@ export class Game {
                 break;
             case "SHOW_MAP":
                 this.DungeonMapDisplay = true;
+                break;
+            case "CONTROLS":
+                const NewTab = window.open();
+                NewTab.document.body.innerHTML = `
+                <style>
+                    @import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap");
+
+                    * {
+                        font-family: "Fira Code", monospace;
+                        transition: all ease 0.2s;
+                    }
+
+                    body {
+                        background-color: rgb(40, 40, 40);
+                        color: rgb(251, 241, 199);
+                        font-family: "Fira Code", monospace;
+                    }
+                </style>
+                <title>Sealventure - Controls & How To Play</title>
+                <h1>Sealventure - Controls & How To Play</h1>
+                <h2>General</h2>
+                <p>
+                    Sealventure may seem complicated, but it is quite simple. Sealventure is a basic dungeon crawler game, in which you travel through rooms
+                    using keys you find throughout the dungeon rooms. As you travel through rooms, you encounter different layouts, entities, chests, etc.
+                    <br>
+                    <br>
+                    Each room is accessed via a door. Each room is numbered, and each door is labeled with the room number that it leads too. The door's color
+                    annotates the type of the room: A pale green color for a rest room (Similar to the starting room), gold for a loot room, red for a fight
+                    room (Room with entities that you must kill) and dark red for a boss room. When a door is unlocked, it will turn green.
+                    In each room, there will sometimes be magenta / purple chests. These chests contain room keys, which have a number that unlocks the door
+                    with the specified number.
+                    <br>
+                    <br>
+                    If you play for a few minutes, you will see that there is a blue * character in the direction that you move in. This designates which object
+                    you are selecting, and if you put the * character over an object the object will turn blue to designate that you are selecting it. The object
+                    that you select is the one that you will interact with when pressing interaction buttons (eg. select, interact, attack)
+                    <br>
+                    <br>
+                    When you access your inventory, it will open an overlay. You can use the SELECT control to equip the item that you are selecting, 
+                    (which is designated by a * character before the name of the item, or the item being colored in a orangeish color) to equip the item. Equipped
+                    items that are NOT armor are designated by being colored in a aqua/bright blue color, and items that ARE armor are designated by being colored
+                    with a magenta/purple color. You can only have one normal item and one armor item at a time. You can use the INSPECT control to open up a second
+                    overlay that shows the item info (eg. Worth, damage, effects). You can also use the USE control to use items (eg. potions).
+                    <br>
+                    <br>
+                    Using the CLOSE control will close any active overlay (eg. Map, inventory, merchant, etc). There is a standby overlay at the bottom fo the screen
+                    that shows critical info, such as the name of the selected object, health, and your current balance.
+                    <br>
+                    <br>
+                    There is an economy system, in which you have a balance of ₡, the currency of the Dungeon. In rest rooms (that are not the start room) you can sell
+                    or buy items from the Merchants. Merchants will have random loot, but once you purchase all of the items they will NOT restock.
+                </p>
+                <h2>Movement</h2>
+                <ul>
+                    <li>MOVE UP: I or W</li>
+                    <li>MOVE DOWN: K or S</li>
+                    <li>MOVE LEFT: J or A</li>
+                    <li>MOVE RIGHT: L or D</li>
+                </ul>
+                <h2>Interaction</h2>
+                <ul>
+                    <li>SELECT: ENTER</li>
+                    <li>CLOSE: , (COMMA) or ESCAPE</li>
+                    <li>ATTACK: . (PERIOD)</li>
+                    <li>USE: ; (SEMICOLON)</li>
+                    <li>INSPECT: ' (SINGLE QOUTE)</li>
+                </ul>
+                <h2>UI</h2>
+                <ul>
+                    <li>OPEN INVENTORY: M</li>
+                    <li>OPEN MAP: P</li>
+                </uL>
+                <h2>UI Navigation</h2>
+                <ul>
+                    <li>CYCLE: N</li>
+                    <li>UP: UP ARROW</li>
+                    <li>DOWN: CYCLE or DOWN ARROW</li>
+                </ul>
+
+                <button onclick="window.close();">Return To Game</button>
+                `
                 break;
             case "CLOSE_ALL":
                 this.DungeonMapDisplay = false;
@@ -287,10 +387,17 @@ export class Game {
     static async Setup() {
         $(document).keydown(this.KeyPressed.bind(this));
         this.GenerateRooms();
-        this.MovePlayer(0, 0);
+        this.MovePlayer(0,0);
+        this.SetPlayerPosition(24, 10);
         
         while (true) {
             this.Ticks++;
+
+            if (this.EquippedItem && this.EquippedItem.Metadata.ProjectileLauncher) {
+                this.Player.AttackCooldown = 1000;
+            } else {
+                this.Player.AttackCooldown = 400;
+            }
 
             if (this.Ticks % 500 == 0 && this.Player.Health > 100) {
                 this.Player.Health -= Math.ceil((this.Player.Health-100)/2);
@@ -320,7 +427,6 @@ export class Game {
             const Sel = this.SelectedMapObjectXY;
             this.Display.HighlightMap(Sel.X, Sel.Y, "mediumturquoise");
 
-
             if (this.DungeonMapDisplay) {
                 this.Display.DisplayRaw(RoomVisualizer.Visualize(this.Rooms));
             } else {
@@ -333,7 +439,7 @@ export class Game {
     static async Main() {
         try {
             if (localStorage.getItem("warning_set") != "1") {
-                this.Display.DisplayRaw([[new DisplayObject("WARNING: THIS GAME HAS A VERY STEEP LEARNING CURVE.")], [new DisplayObject("REMEMBER: THE GAME IS IN BETA AND BUGS MAY OCCUR.")], [new DisplayObject("SOME FEATURES ARE NOT FULLY IMPLEMENTED AND UNEXPECTED BEHAVIORS MAY OCCUR.")], [new DisplayObject("PLEASE CONTACT THE DEVELOPER (MATTHEW CARMICHAEL) VIA EMAIL IF BUGS OCCUR.")], [new DisplayObject("(PLEASE PROVIDE SCREENSHOTS OR ERROR MESSAGES)")], [new DisplayObject("PRESS ANY KEY TO CONTINUE")]]);
+                this.Display.DisplayRaw([[new DisplayObject("WARNING: THIS GAME HAS A VERY STEEP LEARNING CURVE.")], [new DisplayObject("REMEMBER: THE GAME IS IN BETA AND BUGS MAY OCCUR.")], [new DisplayObject("SOME FEATURES ARE NOT FULLY IMPLEMENTED AND UNEXPECTED BEHAVIORS MAY OCCUR.")], [new DisplayObject("PLEASE CONTACT THE DEVELOPER (MATTHEW CARMICHAEL) VIA EMAIL IF BUGS OCCUR.")], [new DisplayObject("(PLEASE PROVIDE SCREENSHOTS OR ERROR MESSAGES)")], [new DisplayObject("IF YOU GET CONFUSED AT ANY POINT, PRESS C TO OPEN THE HOW TO PLAY PAGE")], [new DisplayObject("PRESS ANY KEY TO CONTINUE")]]);
                 localStorage.setItem("warning_set", "1");
                 await WaitForKey();
             }

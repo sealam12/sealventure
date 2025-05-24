@@ -1,4 +1,4 @@
-import { Item } from "/static/js/Object.js";
+import { Item, Projectile } from "/static/js/Object.js";
 
 // Item factory function to create items with consistent properties
 function CreateItem(Name, Char, Damage, Worth, Metadata = {}) {
@@ -13,27 +13,27 @@ function CreateItem(Name, Char, Damage, Worth, Metadata = {}) {
 // Weapons
 export const Weapons = {
     // Tier 1 (Levels 1-3)
-    RustySword: CreateItem("Rusty Sword", "s", 3, 4),
-    WoodenBow: CreateItem("Wooden Bow", "b", 2, 4),
+    RustySword: CreateItem("Rusty Sword", "s", 2, 4),
+    WoodenBow: CreateItem("Wooden Bow", "b", 1, 4),
     BrokenDagger: CreateItem("Broken Dagger", "d", 1, 6),
     
     // Tier 2 (Levels 4-6)
-    IronSword: CreateItem("Iron Sword", "s", 5, 8),
-    HunterBow: CreateItem("Hunter's Bow", "b", 4, 8),
-    SteelDagger: CreateItem("Steel Dagger", "d", 3, 12),
+    IronSword: CreateItem("Iron Sword", "s", 3, 8),
+    HunterBow: CreateItem("Hunter's Bow", "b", 2, 8),
+    SteelDagger: CreateItem("Steel Dagger", "d", 2, 12),
     
     // Tier 3 (Levels 7-9)
-    FlamingSword: CreateItem("Flaming Sword", "S", 8, 22),
-    FrostBow: CreateItem("Frost Bow", "B", 7, 22),
-    ThunderHammer: CreateItem("Thunder Hammer", "H", 10, 24),
+    FlamingSword: CreateItem("Flaming Sword", "S", 6, 22),
+    FrostBow: CreateItem("Frost Bow", "B", 4, 22),
+    ThunderHammer: CreateItem("Thunder Hammer", "H", 6, 24),
     
     // Tier 4 (Levels 10-12)
-    VoidBlade: CreateItem("Void Blade", "S", 12, 52),
-    DragonslayerBow: CreateItem("Dragonslayer Bow", "B", 11, 54),
+    VoidBlade: CreateItem("Void Blade", "S", 9, 52),
+    DragonslayerBow: CreateItem("Dragonslayer Bow", "B", 7, 54),
     
     // Tier 5 (Levels 13+)
-    CelestialGreatsword: CreateItem("Celestial Greatsword", "Ω", 15, 96),
-    EtherealBow: CreateItem("Ethereal Bow", "Φ", 14, 96)
+    CelestialGreatsword: CreateItem("Celestial Greatsword", "Ω", 14, 96),
+    EtherealBow: CreateItem("Ethereal Bow", "Φ", 12, 96)
 };
 
 Weapons.WoodenBow.Metadata.ProjectileLauncher = true;
@@ -41,6 +41,12 @@ Weapons.HunterBow.Metadata.ProjectileLauncher = true;
 Weapons.FrostBow.Metadata.ProjectileLauncher = true;
 Weapons.DragonslayerBow.Metadata.ProjectileLauncher = true;
 Weapons.EtherealBow.Metadata.ProjectileLauncher = true;
+
+Weapons.WoodenBow.Metadata.Projectile = new Projectile(">", "white", "Arrow");
+Weapons.HunterBow.Metadata.Projectile = new Projectile(">", "white", "Arrow");
+Weapons.FrostBow.Metadata.Projectile = new Projectile(">", "aqua", "Arrow");
+Weapons.DragonslayerBow.Metadata.Projectile = new Projectile(">", "indigo", "Arrow");
+Weapons.EtherealBow.Metadata.Projectile = new Projectile(">", "magenta", "Arrow");
 
 // Armor
 export const Armor = {

@@ -63,6 +63,17 @@ export class RoomVisualizer {
                    this.rooms[roomId].Unlocked ? " *" :
                    roomId < 10 ? `0${roomId}` : roomId.toString();
 
+        const Map = window.Game.GeneratedRooms[roomId];
+        let Looted = true;
+        for (const Row of Map.Objects) {
+            for (const Obj of Row) {
+                if (Obj.Name != "Key Chest") continue;
+                if (Obj.Items.length != 0) Looted = false;
+            }
+        }
+
+        if (char == " *" && Looted) char = "**";
+
         // Draw both characters of the room display
         grid[y][x] = new DisplayObject(char[0], color);
         grid[y][x + 1] = new DisplayObject(char[1], color);
